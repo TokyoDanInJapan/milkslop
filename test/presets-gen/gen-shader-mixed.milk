@@ -1,0 +1,9 @@
+[preset00]
+MILKDROP_PRESET_VERSION=201
+PSVERSION_WARP=0
+PSVERSION_COMP=2
+fRating=3
+comp_1=`shader_body
+comp_2=`{
+comp_3=`  ret = tex2D(sampler_main, uv).xyz;
+comp_4=`}

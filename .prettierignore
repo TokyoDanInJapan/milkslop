@@ -1,0 +1,11 @@
+# Keep this list in sync with .gitignore.
+coverage/
+dist/
+node_modules/
+test-results/
+*.local
+.DS_Store
+.claude/settings.local.json
+
+# Prettier-only: generated but committed, so not in .gitignore - never reformat.
+package-lock.json

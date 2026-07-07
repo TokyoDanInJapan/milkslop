@@ -1,0 +1,12 @@
+[preset00]
+MILKDROP_PRESET_VERSION=201
+fRating=3
+per_frame_init_1=q1 = 0;
+per_frame_1=mv_a = 0.5;
+per_frame_2=ob_a = 0.5;
+per_frame_3=echo_alpha = 0.5;
+per_frame_4=zoom = 1.01;
+per_frame_5=wave_a = 0.5;
+per_frame_6=decay = 0.98;
+per_frame_7=gamma = 1.5;
+per_pixel_1=dx = dx + 0.001*rad;

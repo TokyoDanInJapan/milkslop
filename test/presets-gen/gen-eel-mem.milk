@@ -1,0 +1,9 @@
+[preset00]
+MILKDROP_PRESET_VERSION=201
+fRating=3
+per_frame_1=q17 = megabuf(0) + gmegabuf(1);
+per_frame_2=memset(0,1,4);
+per_frame_3=memcpy(8,0,4);
+per_frame_4=q18 = exec2(q17, q17 + 1);
+per_frame_5=q19 = exec3(1,2,3);
+per_frame_6=freembuf(0);

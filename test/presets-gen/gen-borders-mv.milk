@@ -1,0 +1,9 @@
+[preset00]
+MILKDROP_PRESET_VERSION=201
+fRating=3
+ob_a=0.5
+ib_a=0.5
+nMotionVectorsX=12.5
+mv_dx=0.1
+mv_a=1
+fZoomExponent=2

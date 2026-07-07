@@ -1,0 +1,12 @@
+[preset00]
+MILKDROP_PRESET_VERSION=201
+fRating=3
+shapecode_0_enabled=1
+shapecode_0_sides=40
+shapecode_0_num_inst=4
+shapecode_0_textured=1
+shapecode_0_thickOutline=1
+shapecode_0_border_a=0.5
+shapecode_0_a=1
+shapecode_1_enabled=1
+shapecode_1_a=1

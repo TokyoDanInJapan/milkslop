@@ -1,0 +1,12 @@
+[preset00]
+MILKDROP_PRESET_VERSION=201
+fRating=3
+per_frame_1=q1 = if(above(bass,0.5), sin(time), cos(time));
+per_frame_2=q2 = equal(below(treb,2),1) + sigmoid(mid,1);
+per_frame_3=q3 = atan2(q1,q2) + pow(2,3) + exp(0.1) + log(2);
+per_frame_4=q4 = (3 % 2) + rand(4);
+per_frame_5=q5 = (5 & 3) | 2;
+per_frame_6=q6 = loop(2, q6 + 1);
+per_frame_7=q7 = while(0);
+per_frame_8=t1 = q1 + q2;
+per_frame_9=monitor = t1;

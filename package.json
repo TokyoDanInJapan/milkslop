@@ -1,0 +1,47 @@
+{
+  "name": "milkslop",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Standalone WebGL port of the MilkDrop 2 music visualizer",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . && node scripts/check-tsdoc.mjs",
+    "doc:check": "node scripts/check-tsdoc.mjs",
+    "fix": "npm run fix:eslint && npm run fix:prettier",
+    "fix:eslint": "eslint --fix .",
+    "fix:prettier": "prettier -w .",
+    "smoke": "node scripts/smoke.mjs",
+    "check-shaders": "node scripts/check-shaders.mjs",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.19.20",
+    "@vitest/coverage-v8": "^4.1.8",
+    "eslint": "^10.4.1",
+    "eslint-plugin-tsdoc": "^0.5.2",
+    "globals": "^17.7.0",
+    "husky": "^9.1.7",
+    "js-yaml": "^4.2.0",
+    "playwright": "^1.60.0",
+    "prettier": "^3.8.4",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.61.0",
+    "vite": "^6.0.7",
+    "vitest": "^4.1.8"
+  }
+}

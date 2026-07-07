@@ -1,0 +1,8 @@
+[preset00]
+MILKDROP_PRESET_VERSION=201
+fRating=3
+nWaveMode=0
+fWaveAlpha=1
+fVideoEchoAlpha=0.5
+nVideoEchoOrientation=0
+bAdditiveWaves=1

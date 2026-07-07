@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Milkslop</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23120a1e'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%23d56cff' stroke-width='3'/%3E%3C/svg%3E"
+    />
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #000;
+        overflow: hidden;
+      }
+      #stage {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+      }
+      #start {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 22px;
+        padding: 24px;
+        box-sizing: border-box;
+        /* Translucent vignette over a blurred view of the live visualizer
+           running behind, so the splash already feels alive before you click. */
+        background: radial-gradient(
+          ellipse 80% 70% at 50% 42%,
+          rgba(20, 8, 38, 0.35),
+          rgba(4, 2, 10, 0.78) 75%
+        );
+        backdrop-filter: blur(28px) saturate(1.2);
+        -webkit-backdrop-filter: blur(28px) saturate(1.2);
+        color: #cfc4e0;
+        font:
+          16px system-ui,
+          sans-serif;
+        cursor: pointer;
+        z-index: 30;
+        text-align: center;
+        /* fade lasts as long as the slow title burst so the overlay isn't
+           removed mid-animation (see start()) */
+        transition: opacity 1.2s ease;
+      }
+      /* Fade the splash out when dismissed. The backdrop blur is dropped at once
+         here because start() hands it off to the canvas and eases it down (so the
+         visuals ease into focus instead of snapping sharp). */
+      #start.leaving {
+        opacity: 0;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        pointer-events: none;
+      }
+      #start .logo {
+        font-size: clamp(48px, 12vw, 96px);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1;
+        margin: 0;
+        background: linear-gradient(
+          110deg,
+          #ff7be5,
+          #d56cff 35%,
+          #7c8bff 70%,
+          #5ce0ff
+        );
+        background-size: 220% 220%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        filter: drop-shadow(0 0 28px rgba(213, 108, 255, 0.45));
+        animation: hue 9s ease-in-out infinite;
+      }
+      @keyframes hue {
+        0%,
+        100% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+      }
+      #start .cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 13px 30px;
+        border-radius: 999px;
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        color: #f3ebff;
+        background: rgba(213, 108, 255, 0.12);
+        border: 1px solid rgba(213, 108, 255, 0.5);
+        box-shadow:
+          0 0 0 0 rgba(213, 108, 255, 0.5),
+          0 8px 30px rgba(124, 139, 255, 0.18);
+        animation: pulse 2.4s ease-in-out infinite;
+        transition:
+          background 0.2s ease,
+          transform 0.15s ease;
+      }
+      #start:hover .cta {
+        background: rgba(213, 108, 255, 0.24);
+        transform: scale(1.04);
+      }
+      #start .cta::before {
+        content: "▶";
+        font-size: 12px;
+        opacity: 0.85;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          box-shadow:
+            0 0 0 0 rgba(213, 108, 255, 0.45),
+            0 8px 30px rgba(124, 139, 255, 0.18);
+        }
+        50% {
+          box-shadow:
+            0 0 0 14px rgba(213, 108, 255, 0),
+            0 8px 30px rgba(124, 139, 255, 0.28);
+        }
+      }
+      /* "Explode out": on dismiss the title and button burst outward - scaling
+         up and blurring away - while the overlay itself fades (see start()).
+         The button flies a touch further/faster than the title for depth. */
+      #start.leaving .logo {
+        opacity: 0;
+        transform: scale(1.9);
+        filter: blur(12px);
+        animation: none;
+        transition:
+          transform 1.2s cubic-bezier(0.16, 0.9, 0.28, 1),
+          opacity 1.1s ease-out,
+          filter 1.2s ease-out;
+      }
+      #start.leaving .cta {
+        opacity: 0;
+        transform: scale(2.6);
+        filter: blur(16px);
+        animation: none;
+        transition:
+          transform 0.5s cubic-bezier(0.16, 0.95, 0.3, 1),
+          opacity 0.42s ease-out,
+          filter 0.5s ease-out;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #start .logo,
+        #start .cta {
+          animation: none;
+        }
+        /* no burst - just fade with the overlay */
+        #start.leaving .logo,
+        #start.leaving .cta {
+          transform: none;
+          filter: none;
+          transition: opacity 0.4s ease;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="stage"></canvas>
+    <div id="start">
+      <h1 class="logo">Milkslop</h1>
+      <div class="cta">click to start</div>
+    </div>
+    <script type="module" src="/src/app/main.ts"></script>
+  </body>
+</html>

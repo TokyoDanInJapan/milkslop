@@ -1,0 +1,30 @@
+[preset00]
+MILKDROP_PRESET_VERSION=201
+PSVERSION_WARP=2
+PSVERSION_COMP=2
+fRating=3
+warp_1=`shader_body
+warp_2=`{
+warp_3=`  ret = tex2D(sampler_main, uv).xyz;
+warp_4=`}
+comp_1=`sampler sampler_mytex;
+comp_2=`shader_body
+comp_3=`{
+comp_4=`  float2 uv2 = uv;
+comp_5=`  ret = tex2D(sampler_main, uv2).xyz;
+comp_6=`  ret += GetBlur1(uv2)*0.001;
+comp_7=`  ret += GetBlur2(uv2)*0.001;
+comp_8=`  ret += GetBlur3(uv2)*0.001;
+comp_9=`  ret += tex2D(sampler_noise_lq, uv2*texsize.xy).xyz*0.001;
+comp_10=`  ret += tex2D(sampler_noise_mq, uv2).xyz*0.001;
+comp_11=`  ret += tex2D(sampler_noise_hq, uv2).xyz*0.001;
+comp_12=`  ret += tex3D(sampler_noisevol_lq, float3(uv2,0.5)).xyz*0.001;
+comp_13=`  ret += tex2D(sampler_fw_main, uv2).xyz*0.001;
+comp_14=`  ret += tex2D(sampler_pc_main, uv2).xyz*0.001;
+comp_15=`  ret += tex2D(sampler_mytex, uv2).xyz*0.001;
+comp_16=`  ret += (rand_frame.xyz + rand_preset.xyz)*0.001;
+comp_17=`  ret += _qa.xyz*0.001;
+comp_18=`  ret += roam_cos.xyz*0.001;
+comp_19=`  ret += lum(ret)*0.001;
+comp_20=`  ret *= hue_shader;
+comp_21=`}

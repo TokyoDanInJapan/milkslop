@@ -1,0 +1,70 @@
+[preset00]
+MILKDROP_PRESET_VERSION=201
+PSVERSION=2
+PSVERSION_WARP=2
+PSVERSION_COMP=2
+fRating=4.000
+fGammaAdj=1.800
+fDecay=0.960
+fVideoEchoZoom=1.500
+fVideoEchoAlpha=0.000
+nVideoEchoOrientation=0
+nWaveMode=2
+bAdditiveWaves=1
+bWaveDots=0
+bWaveThick=1
+bModWaveAlphaByVolume=0
+bMaximizeWaveColor=1
+bTexWrap=1
+bDarkenCenter=0
+bBrighten=0
+bDarken=0
+bSolarize=0
+bInvert=0
+fWaveAlpha=1.000
+fWaveScale=1.200
+fWaveSmoothing=0.750
+fWaveParam=0.000
+zoom=1.010
+rot=0.020
+cx=0.500
+cy=0.500
+dx=0.000
+dy=0.000
+warp=0.800
+sx=1.000
+sy=1.000
+wave_r=0.800
+wave_g=0.700
+wave_b=1.000
+wave_x=0.500
+wave_y=0.500
+nMotionVectorsX=12.000
+nMotionVectorsY=9.000
+b1n=0.000
+b1x=1.000
+per_frame_init_1=mybass = 0;
+per_frame_1=mybass = mybass*0.9 + bass*0.1;
+per_frame_2=zoom = zoom + 0.02*sin(time*0.31);
+per_frame_3=rot = rot + 0.01*mybass;
+per_frame_4=q1 = mybass;
+per_frame_5=wave_r = 0.5 + 0.5*sin(time*1.3);
+per_pixel_1=zoom = zoom + 0.01*rad;
+per_pixel_2=rot = rot + 0.02*(0.5 - rad);
+wavecode_0_enabled=1
+wavecode_0_samples=512
+wavecode_0_bSpectrum=0
+wavecode_0_bDrawThick=1
+wavecode_0_bAdditive=1
+wavecode_0_scaling=1.000
+wavecode_0_smoothing=0.500
+wavecode_0_r=1.000
+wavecode_0_g=1.000
+wavecode_0_b=1.000
+wavecode_0_a=1.000
+wave_0_init1=t1 = 0.5;
+wave_0_per_frame1=t1 = t1 + 0.1;
+wave_0_per_point1=x = 0.5 + 0.4*cos(sample*6.28);
+wave_0_per_point2=y = 0.5 + 0.4*sin(sample*6.28);
+warp_1=shader_body { ret = tex2D(sampler_main, uv).xyz; }
+comp_1=shader_body { ret = tex2D(sampler_main, uv).xyz; }

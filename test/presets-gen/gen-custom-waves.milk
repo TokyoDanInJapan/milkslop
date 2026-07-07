@@ -1,0 +1,11 @@
+[preset00]
+MILKDROP_PRESET_VERSION=201
+fRating=3
+wavecode_0_enabled=1
+wavecode_0_bSpectrum=1
+wavecode_0_bUseDots=1
+wavecode_0_bDrawThick=1
+wavecode_0_bAdditive=1
+wave_0_per_point1=x = 0.5 + 0.4*sin(sample*6.28); y = 0.5;
+wavecode_1_enabled=1
+wave_1_per_point1=x = sample; y = 0.5;

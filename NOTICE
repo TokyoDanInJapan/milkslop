@@ -1,0 +1,33 @@
+Milkslop
+========
+
+A standalone WebGL2 port of the MilkDrop 2 music visualizer.
+
+This software is a derivative work of MilkDrop 2, and incorporates algorithms,
+constants, and shader logic transcribed from the MilkDrop 2 source code, which
+was released under the BSD 3-Clause License.
+
+Upstream attribution
+--------------------
+
+Copyright 2005-2013 Nullsoft, Inc. All rights reserved.
+MilkDrop by Ryan Geiss.
+
+MilkDrop 2 is distributed under the BSD 3-Clause License. The full text of that
+license (identical in terms to the LICENSE file in this repository) and its
+copyright notice are retained here in satisfaction of that license's first
+condition.
+
+Note: the BSD-licensed MilkDrop 2 release (version 2.25c) is the basis for the
+derived portions of this project. The later "source-available" 2.25d release is
+NOT under the BSD license and is not a source of any code here.
+
+Third-party acknowledgements
+----------------------------
+
+hlslparser - The MIT License (MIT), Copyright (c) 2013-2014 Unknown Worlds
+Entertainment, Inc. The DX9 shader-model-3 convention of taking abs() of the
+argument to sqrt/rsqrt/log/log2/pow (rather than returning NaN for a negative
+argument) is documented in hlslparser's GLSLGenerator.cpp. This project
+implements the same convention independently; no hlslparser code is included.
+This acknowledgement is provided as a courtesy.

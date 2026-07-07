@@ -1,0 +1,6 @@
+coverage/
+dist/
+node_modules/
+test-results/
+*.local
+.DS_Store

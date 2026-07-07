@@ -1,0 +1,84 @@
+# Milkslop configuration - the single source of truth for global values.
+#
+# Two sections, split by type:
+#
+#   tunables  - values you may freely change. These are the analogues of
+#               MilkDrop's milk2.ini settings (the original C++ key is noted).
+#
+#   constants - faithful 1:1 transcriptions of MilkDrop internals plus a few
+#               structural invariants (vertex/buffer layout, register counts).
+#               Each carries its source provenance. These are NOT tuning knobs:
+#               changing them changes fidelity and should match the original C++
+#               source (or the layout they describe).
+#
+# Loaded at build time via src/config.ts (see the Vite yaml plugin in
+# vite.config.ts); the named constants exported across src/ read from here.
+# Note: coefficients embedded inside a single transcribed formula (e.g. the
+# warp-UV math) stay inline in code - only named, standalone globals live here.
+
+tunables:
+  # Playback / cycling (src/app/Visualizer.ts)
+  timeBetweenPresets: 16 # seconds on screen before auto-cycle (fTimeBetweenPresets)
+  fastModeInterval: 4 # ?fast cycle interval, seconds
+  blendDuration: 2.7 # crossfade duration, seconds (fBlendTimeAuto)
+  shuffle: false # rating-weighted random order vs. sequential
+  # Hard cuts - beat-driven preset changes
+  hardCutsEnabled: false # !bHardCutsDisabled
+  hardCutLoudness: 2.5 # fHardCutLoudnessThresh
+  hardCutHalflife: 60 # fHardCutHalflife (seconds)
+  # Warp mesh density (nMeshSize; original default 48×36, milkdropfs.cpp:952)
+  meshGridX: 48 # nGridX
+  meshGridY: 36 # nGridY
+
+constants:
+  eel:
+    closefact: 0.00001 # ns-eel2 closefact comparison epsilon
+    maxLoop: 1048576 # loop()/while() iteration cap (1<<20)
+    megabufBlock: 65536 # megabuf block size, in slots
+    megabufMaxBlocks: 128 # megabuf max blocks
+    numQVars: 32 # q1..q32 (spec invariant)
+    numTVars: 8 # t1..t8 (spec invariant)
+  preset:
+    maxCustomWaves: 4 # MAX_CUSTOM_WAVES
+    maxCustomShapes: 4 # MAX_CUSTOM_SHAPES
+    defaultRating: 3 # fRating default
+  audio:
+    waveSamples: 576 # fWaveform[2][576] (pluginshell.h:61)
+    bassEdge: 0.04 # spectrum fraction: bass/mid split
+    midEdge: 0.18 # spectrum fraction: mid/treb split
+    avgTimeConstant: 0.5 # band long-average normalization, seconds
+    attTimeConstant: 0.15 # band attenuated-value smoothing, seconds
+  warp:
+    # animated warp coefficients (milkdropfs.cpp:1785):
+    # f[i] = base + amp * cos(warpTime * freq + phase) → [base, amp, freq, phase]
+    coefficients:
+      - [11.68, 4.0, 1.413, 10]
+      - [8.77, 3.0, 1.113, 7]
+      - [10.54, 3.0, 1.233, 3]
+      - [11.49, 4.0, 0.933, 5]
+  blur:
+    kernel: [4.0, 3.8, 3.5, 2.9, 1.9, 1.2, 0.7, 0.3] # 16-tap weights (milkdropfs.cpp:1584)
+    minDistance: 0.1 # GetSafeBlurMinMax fMinDist (milkdropfs.cpp:1562)
+    edgeDarkenScale: 5.0 # edge-darken falloff (milkdropfs.cpp:1740)
+  waveform:
+    numSamples: 480 # NUM_WAVEFORM_SAMPLES (defines.h:188)
+  motionVectors:
+    maxX: 64 # grid-count cap (milkdropfs.cpp:1260)
+    maxY: 48 # grid-count cap (milkdropfs.cpp:1261)
+  borders:
+    vertsPerBorder: 24 # 4 quads × 2 triangles × 3 vertices
+    darkenCenterHalfSize: 0.05 # diamond half-size (milkdropfs.cpp:3411)
+    darkenCenterAlpha: 0.09375 # centre alpha 3/32 (milkdropfs.cpp:3403)
+  noise:
+    size2D: 256 # noise_lq/mq/hq (AddNoiseTex, plugin.cpp:2361)
+    sizeLite: 32 # noise_lq_lite
+    size3D: 32 # noisevol_lq/hq (AddNoiseVol, plugin.cpp:2366)
+    zoom2D: [1, 4, 8] # feature scales for lq / mq / hq
+    zoom3D: [1, 4] # feature scales for noisevol lq / hq
+    rangeZoomed: 216 # RANGE for zoom>1 (AddNoiseTex, plugin.cpp:2468)
+    rangePlain: 256 # RANGE for zoom==1
+  hardCut:
+    decayConstant: -1.3863 # per-frame decay exponent = -ln(4) (milkdropfs.cpp:925)
+  layout:
+    floatsPerVert: 6 # ColorBatch vertex stride: [x, y, r, g, b, a]
+    texFloatsPerVert: 8 # textured-shape vertex: [x, y, u, v, r, g, b, a]
