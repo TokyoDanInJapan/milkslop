@@ -49,6 +49,44 @@ export type PresetUrlTarget =
   | { kind: "unsupported" };
 
 /**
+ * Normalize `candidate` and confirm it is still anchored under `prefix` -
+ * URL normalization collapses dot-segments (`..`, `%2e%2e`, …), so an input
+ * that tries to escape the intended path no longer matches the prefix.
+ *
+ * @param candidate - The URL assembled from user-supplied pieces.
+ * @param prefix - The origin + path the result must remain under.
+ * @returns The normalized URL, or `null` if it escaped the prefix.
+ */
+function anchoredUrl(candidate: string, prefix: string): string | null {
+  let url: URL;
+  try {
+    url = new URL(candidate);
+  } catch {
+    return null;
+  }
+  return url.href.startsWith(prefix) ? url.href : null;
+}
+
+/**
+ * Parse a user-supplied direct link, accepting only http(s) URLs (rejects
+ * `javascript:`, `data:`, relative paths, …).
+ *
+ * @param candidate - The URL the user pasted.
+ * @returns The normalized URL, or `null` if unparsable or a non-web scheme.
+ */
+function httpUrl(candidate: string): string | null {
+  let url: URL;
+  try {
+    url = new URL(candidate);
+  } catch {
+    return null;
+  }
+  return url.protocol === "https:" || url.protocol === "http:"
+    ? url.href
+    : null;
+}
+
+/**
  * Classify a preset URL into a fetch target - **pure, no network**. A GitHub
  * folder (`/tree/<ref>/<path>`) or a bare repo (`/<owner>/<repo>`, optionally a
  * `.git` clone URL) becomes a contents-API listing URL; a GitHub single-file
@@ -67,10 +105,11 @@ export function resolvePresetUrl(input: string): PresetUrlTarget {
   );
   if (tree) {
     const [, owner, repo, ref, path] = tree;
-    return {
-      kind: "folder",
-      apiUrl: `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${encodeURIComponent(ref!)}`,
-    };
+    const apiUrl = anchoredUrl(
+      `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${encodeURIComponent(ref!)}`,
+      `https://api.github.com/repos/${owner}/${repo}/contents/`,
+    );
+    return apiUrl ? { kind: "folder", apiUrl } : { kind: "unsupported" };
   }
 
   // GitHub single file (blob) → raw host; otherwise treat as a direct link
@@ -78,9 +117,12 @@ export function resolvePresetUrl(input: string): PresetUrlTarget {
     /^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/(.+\.milk)$/i,
   );
   const fileUrl = blob
-    ? `https://raw.githubusercontent.com/${blob[1]}/${blob[2]}/${blob[3]}/${blob[4]}`
-    : url;
-  if (/\.milk(\?.*)?$/i.test(fileUrl)) {
+    ? anchoredUrl(
+        `https://raw.githubusercontent.com/${blob[1]}/${blob[2]}/${blob[3]}/${blob[4]}`,
+        `https://raw.githubusercontent.com/${blob[1]}/${blob[2]}/${blob[3]}/`,
+      )
+    : httpUrl(url);
+  if (fileUrl && /\.milk(\?.*)?$/i.test(fileUrl)) {
     const name = decodeURIComponent(
       (fileUrl.split("/").pop() ?? "preset").replace(/\.milk.*$/i, ""),
     );
@@ -94,10 +136,11 @@ export function resolvePresetUrl(input: string): PresetUrlTarget {
   );
   if (repo) {
     const [, owner, name] = repo;
-    return {
-      kind: "folder",
-      apiUrl: `https://api.github.com/repos/${owner}/${name}/contents/`,
-    };
+    const apiUrl = anchoredUrl(
+      `https://api.github.com/repos/${owner}/${name}/contents/`,
+      `https://api.github.com/repos/${owner}/${name}/contents/`,
+    );
+    return apiUrl ? { kind: "folder", apiUrl } : { kind: "unsupported" };
   }
 
   return { kind: "unsupported" };
