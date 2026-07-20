@@ -126,7 +126,7 @@ describe("fetchMilkFromUrl (network layer, stubbed fetch)", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn((url: string) => {
-        if (url.includes("api.github.com"))
+        if (new URL(url).hostname === "api.github.com")
           return Promise.resolve(
             new Response(JSON.stringify(listing), { status: 200 }),
           );
@@ -150,7 +150,7 @@ describe("fetchMilkFromUrl (network layer, stubbed fetch)", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn((url: string) => {
-        if (url.includes("api.github.com"))
+        if (new URL(url).hostname === "api.github.com")
           return Promise.resolve(
             new Response(JSON.stringify(listing), { status: 200 }),
           );
@@ -192,7 +192,7 @@ describe("fetchMilkFromUrl (network layer, stubbed fetch)", () => {
       "fetch",
       vi.fn((url: string) =>
         Promise.resolve(
-          url.includes("api.github.com")
+          new URL(url).hostname === "api.github.com"
             ? new Response(JSON.stringify(listing), { status: 200 })
             : new Response("x", { status: 200 }),
         ),
