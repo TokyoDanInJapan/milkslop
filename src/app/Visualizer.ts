@@ -195,8 +195,8 @@ export class Visualizer {
    * stages that failed to compile (and so fell back to a no-shader path).
    */
   onShaderError:
-    | ((name: string, errors: readonly ShaderCompileError[]) => void)
-    | null = null;
+    ((name: string, errors: readonly ShaderCompileError[]) => void) | null =
+    null;
 
   /**
    * Register dropped images as user textures. A preset shader referencing

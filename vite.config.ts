@@ -1,5 +1,5 @@
 import { defineConfig, type Plugin } from "vite";
-import yaml from "js-yaml";
+import { load as parseYaml } from "js-yaml";
 
 /**
  * Import `.yaml` / `.yml` files as parsed JS objects. Used to load the root
@@ -13,7 +13,7 @@ function yamlPlugin(): Plugin {
     transform(code, id) {
       if (!/\.ya?ml$/.test(id)) return null;
       return {
-        code: `export default ${JSON.stringify(yaml.load(code))};`,
+        code: `export default ${JSON.stringify(parseYaml(code))};`,
         map: null,
       };
     },

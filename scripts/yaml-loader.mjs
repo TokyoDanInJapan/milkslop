@@ -8,7 +8,7 @@
  */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import yaml from "js-yaml";
+import { load as parseYaml } from "js-yaml";
 
 /** Resolve `.yaml` imports as JS modules whose default export is the parsed object. */
 export async function load(url, context, nextLoad) {
@@ -17,7 +17,7 @@ export async function load(url, context, nextLoad) {
     return {
       format: "module",
       shortCircuit: true,
-      source: `export default ${JSON.stringify(yaml.load(text))};`,
+      source: `export default ${JSON.stringify(parseYaml(text))};`,
     };
   }
   return nextLoad(url, context);

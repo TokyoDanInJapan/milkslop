@@ -142,7 +142,7 @@ function collectVecNames(src: string, vecType: string): Set<string> {
   // otherwise leak `vec2 project(vec3 s, …)` as declarations of `s` etc.;
   // initializer call arguments are never needed for name extraction).
   let stripped = src;
-  for (let prev = ""; prev !== stripped; ) {
+  for (let prev = ""; prev !== stripped;) {
     prev = stripped;
     stripped = stripped.replace(/\([^()]*\)/g, "");
   }

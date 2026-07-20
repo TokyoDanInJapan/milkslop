@@ -36,15 +36,7 @@ export interface Var {
 
 /** Assignment operators: plain `=` and the compound forms. */
 export type AssignOp =
-  | "="
-  | "+="
-  | "-="
-  | "*="
-  | "/="
-  | "%="
-  | "^="
-  | "|="
-  | "&=";
+  "=" | "+=" | "-=" | "*=" | "/=" | "%=" | "^=" | "|=" | "&=";
 
 /** An assignment to an lvalue. */
 export interface Assign {
