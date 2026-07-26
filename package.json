@@ -36,7 +36,7 @@
     "eslint-plugin-tsdoc": "^0.5.2",
     "globals": "^17.7.0",
     "husky": "^9.1.7",
-    "js-yaml": "^5.2.1",
+    "js-yaml": "^5.2.2",
     "playwright": "^1.61.1",
     "prettier": "^3.9.5",
     "typescript": "^5.7.2",
