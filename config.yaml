@@ -42,6 +42,11 @@ constants:
     maxCustomWaves: 4 # MAX_CUSTOM_WAVES
     maxCustomShapes: 4 # MAX_CUSTOM_SHAPES
     defaultRating: 3 # fRating default
+    # Upper bound on a shape's num_inst. Structural invariant, not a MilkDrop
+    # transcription: each instance runs a full per_frame EEL block, and presets
+    # are loaded from untrusted URLs, so an unbounded count would hang the
+    # render loop. Set far above real-world use (presets use single digits).
+    maxShapeInstances: 1024
   audio:
     waveSamples: 576 # fWaveform[2][576] (pluginshell.h:61)
     bassEdge: 0.04 # spectrum fraction: bass/mid split

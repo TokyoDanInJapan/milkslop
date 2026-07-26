@@ -15,6 +15,12 @@ import { constants } from "../config.ts";
 export const MAX_CUSTOM_WAVES = constants.preset.maxCustomWaves;
 /** Maximum number of custom shapes a preset may define. */
 export const MAX_CUSTOM_SHAPES = constants.preset.maxCustomShapes;
+/**
+ * Upper bound on a shape's `num_inst`. Each instance runs a full `per_frame`
+ * EEL block every frame, so an unbounded count from a (potentially untrusted)
+ * preset would stall the render loop.
+ */
+export const MAX_SHAPE_INSTANCES = constants.preset.maxShapeInstances;
 
 /** One custom wave: a per-point waveform with its own equation blocks. */
 export interface CustomWave {

@@ -5,6 +5,7 @@
  */
 
 import { ColorBatch, FLOATS_PER_VERT } from "./ColorBatch.ts";
+import { applyThickPass, THICK_PASSES } from "./thickLines.ts";
 import type { Aspect } from "./warp.ts";
 import type {
   CompiledPreset,
@@ -92,7 +93,7 @@ export class CustomWaves {
       }
 
       // draw, with optional thick (4 offset passes)
-      const its = base.thick && !base.useDots ? 4 : 1;
+      const its = base.thick && !base.useDots ? THICK_PASSES : 1;
       const xInc = 2 / texSizeX;
       const yInc = 2 / texSizeY;
       const mode = base.useDots
@@ -100,14 +101,7 @@ export class CustomWaves {
         : WebGL2RenderingContext.LINE_STRIP;
       const ptSize = (texSizeX >= 1024 ? 2 : 1) + (base.thick ? 1 : 0);
       for (let it = 0; it < its; it++) {
-        if (it > 0) {
-          const ox = it === 1 ? xInc : it === 3 ? -xInc : 0;
-          const oy = it === 2 ? yInc : 0;
-          for (let k = 0; k < count; k++) {
-            out[k * FLOATS_PER_VERT] = out[k * FLOATS_PER_VERT]! + ox;
-            out[k * FLOATS_PER_VERT + 1] = out[k * FLOATS_PER_VERT + 1]! + oy;
-          }
-        }
+        applyThickPass(out, count, FLOATS_PER_VERT, it, xInc, yInc);
         this.batch.draw(mode, count, base.additive, ptSize);
       }
     }

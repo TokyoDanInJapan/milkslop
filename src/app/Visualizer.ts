@@ -374,8 +374,10 @@ export class Visualizer {
    *
    * @param audio - This frame's waveform/spectrum audio data.
    * @param dt - Elapsed time since the previous frame, in seconds.
+   * @param fps - Smoothed frame rate the host is achieving, passed through to
+   *   the preset equations and the `fps` shader uniform.
    */
-  frame(audio: AudioFrame, dt: number): void {
+  frame(audio: AudioFrame, dt: number, fps = 60): void {
     this.sinceSwitch += dt;
 
     // Run the hard-cut threshold dynamics every frame (as the original does),
@@ -398,8 +400,8 @@ export class Visualizer {
     }
 
     // render the active preset(s); on a capture-blend only `current` is live
-    this.current.frame(audio, dt);
-    if (this.blending && this.previous) this.previous.frame(audio, dt);
+    this.current.frame(audio, dt, fps);
+    if (this.blending && this.previous) this.previous.frame(audio, dt, fps);
 
     // present / crossfade to screen. The "from" image is the outgoing slot for a
     // normal blend, or the frozen capture for an interrupted one.

@@ -12,12 +12,14 @@ import {
   defaultVals,
   MAX_CUSTOM_SHAPES,
   MAX_CUSTOM_WAVES,
+  MAX_SHAPE_INSTANCES,
   SCALAR_PARAMS,
   type CustomShape,
   type CustomWave,
   type PresetState,
 } from "./types.ts";
 import { constants } from "../config.ts";
+import { clamp } from "../util/math.ts";
 
 /**
  * Parse MilkDrop `.milk` preset text into a {@link PresetState}.
@@ -166,7 +168,14 @@ function readShape(
     additive: flag("additive", 0),
     thickOutline: flag("thickOutline", 0),
     textured: flag("textured", 0),
-    instances: Math.round(num(p + "num_inst", 1)),
+    // Clamped: every instance costs a per_frame EEL run, and preset text is
+    // untrusted (dropped files / arbitrary URLs), so a bogus num_inst must not
+    // be able to wedge the render loop. Cf. the sides/samples clamps.
+    instances: clamp(
+      Math.round(num(p + "num_inst", 1)),
+      0,
+      MAX_SHAPE_INSTANCES,
+    ),
     x: num(p + "x", 0.5),
     y: num(p + "y", 0.5),
     rad: num(p + "rad", 0.1),

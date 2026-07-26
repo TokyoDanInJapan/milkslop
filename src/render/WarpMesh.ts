@@ -10,13 +10,15 @@
 
 import { linkProgram } from "./gl.ts";
 import {
-  computeWarpUV,
+  computeWarpUVInto,
   vertexRadAng,
   warpCoefficients,
   type Aspect,
+  type UV,
   type WarpFrame,
   type WarpParams,
 } from "./warp.ts";
+import type { VarPool } from "../eel/varpool.ts";
 import {
   bindShaderUniforms,
   type ShaderFrameState,
@@ -57,6 +59,29 @@ void main() {
   fragColor = vec4(clamp(c * uDecay, 0.0, 1.0), 1.0);
 }`;
 
+/**
+ * Per-pixel variables the driver seeds before each vertex and reads back after.
+ * Indices 0-3 are the per-vertex inputs (`x`, `y`, `rad`, `ang`); 4-13 are the
+ * motion parameters, in {@link WarpParams} field order. `computeGeometry`
+ * destructures the resolved slots positionally, so the order is load-bearing.
+ */
+const PP_VARS = [
+  "x",
+  "y",
+  "rad",
+  "ang",
+  "zoom",
+  "zoomexp",
+  "rot",
+  "warp",
+  "cx",
+  "cy",
+  "dx",
+  "dy",
+  "sx",
+  "sy",
+] as const;
+
 /** The warp-feedback mesh; optionally driven by a transpiled warp shader. */
 export class WarpMesh {
   private gl: WebGL2RenderingContext;
@@ -83,6 +108,27 @@ export class WarpMesh {
   // optional warp shader (transpiled preset warp shader)
   private warpProg: WebGLProgram | null = null;
   private warpLoc = new Map<string, WebGLUniformLocation | null>();
+
+  // Per-vertex scratch, reused across every vertex of every frame. The driver
+  // below runs (gridX+1)*(gridY+1) ≈ 1.8k times a frame, so it allocates
+  // nothing per vertex and touches the per_pixel variable pool by slot index
+  // rather than by name (see `ppSlots`).
+  private scratch: WarpParams = {
+    zoom: 1,
+    zoomExp: 1,
+    rot: 0,
+    warp: 1,
+    cx: 0.5,
+    cy: 0.5,
+    dx: 0,
+    dy: 0,
+    sx: 1,
+    sy: 1,
+  };
+  private uv: UV = { u: 0, v: 0 };
+  // slot indices of PP_VARS in the per_pixel pool, cached per pool identity
+  private ppSlots: Int32Array | null = null;
+  private ppSlotsFor: VarPool | null = null;
 
   /**
    * Build the warp mesh and its GL buffers. Grid density defaults to
@@ -249,50 +295,87 @@ export class WarpMesh {
     const hasPerPixel = preset.perPixel !== null;
     const ppVars = preset.ppCtx.vars;
     const vcount = this.nx.length;
+    const uv = this.uv;
+    const p = this.scratch;
+
+    // Resolve the per_pixel variable slots once (they're stable for the pool's
+    // lifetime), so the loop below indexes the backing Float64Array directly
+    // instead of doing 24 name lookups per vertex.
+    if (hasPerPixel && this.ppSlotsFor !== ppVars) {
+      this.ppSlots = ppVars.indices(PP_VARS);
+      this.ppSlotsFor = ppVars;
+    }
+    const slot = this.ppSlots;
+
+    // Without per_pixel code every vertex shares the frame's motion params, so
+    // there is nothing to read back and `motion` is used as-is.
+    if (!hasPerPixel || !slot) {
+      for (let i = 0; i < vcount; i++) {
+        const nx = this.nx[i]!;
+        const ny = this.ny[i]!;
+        computeWarpUVInto(uv, nx, ny, this.rad[i]!, motion, frame, aspect);
+        this.data[i * 4 + 2] = uv.u;
+        this.data[i * 4 + 3] = uv.v;
+      }
+      return;
+    }
+
+    const s0 = slot[0]!,
+      s1 = slot[1]!,
+      s2 = slot[2]!,
+      s3 = slot[3]!;
+    const sZoom = slot[4]!,
+      sZoomExp = slot[5]!,
+      sRot = slot[6]!,
+      sWarp = slot[7]!,
+      sCx = slot[8]!,
+      sCy = slot[9]!,
+      sDx = slot[10]!,
+      sDy = slot[11]!,
+      sSx = slot[12]!,
+      sSy = slot[13]!;
 
     for (let i = 0; i < vcount; i++) {
       const nx = this.nx[i]!;
       const ny = this.ny[i]!;
       const rad = this.rad[i]!;
-      let p: WarpParams = motion;
 
-      if (hasPerPixel) {
-        // seed per-vertex inputs (D3D math-space x,y in 0..1)
-        ppVars.set("x", nx * 0.5 * aspect.aspectX + 0.5);
-        ppVars.set("y", ny * -0.5 * aspect.aspectY + 0.5);
-        ppVars.set("rad", rad);
-        ppVars.set(
-          "ang",
-          Math.atan2(-ny * aspect.aspectY, nx * aspect.aspectX),
-        );
-        ppVars.set("zoom", motion.zoom);
-        ppVars.set("zoomexp", motion.zoomExp);
-        ppVars.set("rot", motion.rot);
-        ppVars.set("warp", motion.warp);
-        ppVars.set("cx", motion.cx);
-        ppVars.set("cy", motion.cy);
-        ppVars.set("dx", motion.dx);
-        ppVars.set("dy", motion.dy);
-        ppVars.set("sx", motion.sx);
-        ppVars.set("sy", motion.sy);
-        preset.runPerPixel();
-        p = {
-          zoom: ppVars.get("zoom"),
-          zoomExp: ppVars.get("zoomexp"),
-          rot: ppVars.get("rot"),
-          warp: ppVars.get("warp"),
-          cx: ppVars.get("cx"),
-          cy: ppVars.get("cy"),
-          dx: ppVars.get("dx"),
-          dy: ppVars.get("dy"),
-          sx: ppVars.get("sx"),
-          sy: ppVars.get("sy"),
-        };
-      }
+      // `buf` is re-read each vertex: per_pixel code that first touches a new
+      // variable grows the pool, which reassigns the backing array.
+      let buf = ppVars.buf;
+      // seed per-vertex inputs (D3D math-space x,y in 0..1)
+      buf[s0] = nx * 0.5 * aspect.aspectX + 0.5;
+      buf[s1] = ny * -0.5 * aspect.aspectY + 0.5;
+      buf[s2] = rad;
+      buf[s3] = Math.atan2(-ny * aspect.aspectY, nx * aspect.aspectX);
+      buf[sZoom] = motion.zoom;
+      buf[sZoomExp] = motion.zoomExp;
+      buf[sRot] = motion.rot;
+      buf[sWarp] = motion.warp;
+      buf[sCx] = motion.cx;
+      buf[sCy] = motion.cy;
+      buf[sDx] = motion.dx;
+      buf[sDy] = motion.dy;
+      buf[sSx] = motion.sx;
+      buf[sSy] = motion.sy;
 
-      const { u, v } = computeWarpUV(nx, ny, rad, p, frame, aspect);
-      this.data[i * 4 + 2] = u;
-      this.data[i * 4 + 3] = v;
+      preset.runPerPixel();
+
+      buf = ppVars.buf;
+      p.zoom = buf[sZoom]!;
+      p.zoomExp = buf[sZoomExp]!;
+      p.rot = buf[sRot]!;
+      p.warp = buf[sWarp]!;
+      p.cx = buf[sCx]!;
+      p.cy = buf[sCy]!;
+      p.dx = buf[sDx]!;
+      p.dy = buf[sDy]!;
+      p.sx = buf[sSx]!;
+      p.sy = buf[sSy]!;
+
+      computeWarpUVInto(uv, nx, ny, rad, p, frame, aspect);
+      this.data[i * 4 + 2] = uv.u;
+      this.data[i * 4 + 3] = uv.v;
     }
   }
 

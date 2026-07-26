@@ -59,7 +59,15 @@ export default defineConfig({
       exclude: [
         "src/**/*.d.ts",
         "src/presets/**",
-        "src/app/**", // DOM/render-loop wiring (headless smoke test)
+        // DOM / render-loop wiring, verified by the headless smoke test rather
+        // than unit tests. Listed file-by-file so the DOM-free, unit-tested
+        // modules in src/app (presetUrl, MusicQueue) still count.
+        "src/app/main.ts",
+        "src/app/ui.ts",
+        "src/app/uiStyles.ts",
+        "src/app/dom.ts",
+        "src/app/fileIngest.ts",
+        "src/app/Visualizer.ts",
         // GPU-bound classes exercised via scripts/smoke.mjs and
         // scripts/check-shaders.mjs, not unit tests:
         "src/audio/AudioEngine.ts",

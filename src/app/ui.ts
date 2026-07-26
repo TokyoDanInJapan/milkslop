@@ -13,6 +13,7 @@ import {
   type IngestSink,
 } from "./fileIngest.ts";
 import { HELP_HTML, injectStyles } from "./uiStyles.ts";
+import { listWindow } from "./listWindow.ts";
 
 /** Callbacks the {@link UI} invokes in response to user actions. */
 export interface UICallbacks {
@@ -43,6 +44,70 @@ export interface UICallbacks {
   onBlur: (pixels: number) => void;
 }
 
+/**
+ * Most preset rows rendered at once. The panel is a jump-to list, not a
+ * catalogue - beyond a screenful or two the search box is the way to find
+ * something, and building every row of a 4,000-preset pack costs more than it
+ * is worth. The overflow is reported in the list, never silently dropped.
+ */
+const MAX_LIST_ROWS = 300;
+
+/** Debounce applied to the search box before re-rendering the rows. */
+const SEARCH_DEBOUNCE_MS = 120;
+
+/** The parts of a built panel its owner needs to keep a handle on. */
+interface Panel {
+  /** The panel root (starts hidden). */
+  root: HTMLElement;
+  /** The header's item-count badge. */
+  count: HTMLElement;
+  /** The scrolling items container. */
+  items: HTMLElement;
+}
+
+/**
+ * Build one floating panel. The preset list and the music queue are the same
+ * shape - a header (title, count badge, optional extras, close button), an
+ * optional row beneath it, then a scrolling items container - so they share
+ * this builder and each appends its own footer controls to `root`.
+ *
+ * @param opts - Panel title, extra classes/header elements, and close handler.
+ * @returns Handles to the panel root, count badge, and items container.
+ */
+function buildPanel(opts: {
+  /** Extra class(es) on the root, beyond `mw-list` / `mw-hidden`. */
+  cls?: string;
+  title: string;
+  /** Header elements inserted between the count badge and the close button. */
+  extras?: HTMLElement[];
+  /** Row placed between the header and the items (the preset search box). */
+  subhead?: HTMLElement;
+  onClose: () => void;
+}): Panel {
+  const root = el("div", `mw-list ${opts.cls ? `${opts.cls} ` : ""}mw-hidden`);
+
+  const head = el("div", "mw-list-head");
+  head.appendChild(el("span", "mw-list-title", opts.title));
+  const count = el("span", "mw-list-count", "0");
+  head.appendChild(count);
+  for (const extra of opts.extras ?? []) head.appendChild(extra);
+
+  const close = el("button", "mw-list-close", "✕");
+  close.title = "Close (Esc)";
+  close.onclick = (e) => {
+    e.stopPropagation();
+    opts.onClose();
+  };
+  head.appendChild(close);
+  root.appendChild(head);
+
+  if (opts.subhead) root.appendChild(opts.subhead);
+
+  const items = el("div", "mw-items");
+  root.appendChild(items);
+  return { root, count, items };
+}
+
 /** The DOM UI: toolbar, preset list, title overlay, and drag-and-drop. */
 export class UI {
   private root: HTMLElement;
@@ -51,7 +116,7 @@ export class UI {
   private list: HTMLElement;
   private listItems: HTMLElement;
   private listCount: HTMLElement;
-  private presetSpinner!: HTMLElement; // throbber shown while loading presets from a URL
+  private presetSpinner: HTMLElement; // throbber shown while loading presets from a URL
   private searchInput: HTMLInputElement;
   private queue: HTMLElement;
   private queueItems: HTMLElement;
@@ -77,6 +142,9 @@ export class UI {
   private names: string[] = [];
   private currentIndex = 0;
   private filter = "";
+  private searchTimer = 0;
+  // currentIndex the rendered rows were windowed around (see highlightCurrent)
+  private renderedFor = -1;
   // sink handed to the fileIngest module: routes dropped/picked/URL-loaded
   // content into the app callbacks and surfaces progress in this UI
   private ingest: IngestSink;
@@ -109,36 +177,43 @@ export class UI {
     this.popups = el("div", "mw-popups");
     this.root.appendChild(this.popups);
 
-    // preset list panel: header (title + count + close), search, items, load
-    this.list = el("div", "mw-list mw-hidden");
-    const head = el("div", "mw-list-head");
-    head.appendChild(el("span", "mw-list-title", "Presets"));
-    this.listCount = el("span", "mw-list-count", "0");
-    head.appendChild(this.listCount);
+    // preset list panel: header (title + count + spinner + close), search,
+    // items, load button, URL row
     this.presetSpinner = el("span", "mw-spinner mw-hidden");
     this.presetSpinner.title = "Loading presets…";
-    head.appendChild(this.presetSpinner);
-    const closeBtn = el("button", "mw-list-close", "✕");
-    closeBtn.title = "Close (Esc)";
-    closeBtn.onclick = (e) => {
-      e.stopPropagation();
-      this.toggleList(false);
-    };
-    head.appendChild(closeBtn);
-    this.list.appendChild(head);
 
     this.searchInput = el("input", "mw-search");
     this.searchInput.type = "search";
     this.searchInput.placeholder = "Search presets…";
     this.searchInput.onclick = (e) => e.stopPropagation();
+    // Debounced: each keystroke re-renders the rows, and holding a key down on
+    // a large playlist would otherwise rebuild the list per repeat.
     this.searchInput.oninput = () => {
-      this.filter = this.searchInput.value.trim().toLowerCase();
-      this.renderList();
+      clearTimeout(this.searchTimer);
+      this.searchTimer = window.setTimeout(() => {
+        this.filter = this.searchInput.value.trim().toLowerCase();
+        this.renderList();
+      }, SEARCH_DEBOUNCE_MS);
     };
-    this.list.appendChild(this.searchInput);
 
-    this.listItems = el("div", "mw-items");
-    this.list.appendChild(this.listItems);
+    const presets = buildPanel({
+      title: "Presets",
+      extras: [this.presetSpinner],
+      subhead: this.searchInput,
+      onClose: () => this.toggleList(false),
+    });
+    this.list = presets.root;
+    this.listCount = presets.count;
+    this.listItems = presets.items;
+
+    // One delegated handler for every row, so rendering N presets doesn't
+    // create N closures (and re-rendering doesn't have to detach them).
+    this.listItems.onclick = (e) => {
+      const row = (e.target as HTMLElement).closest<HTMLElement>(".mw-item");
+      if (!row?.dataset.index) return;
+      e.stopPropagation();
+      this.cb.onJump(Number(row.dataset.index));
+    };
 
     const loadBtn = el("button", "mw-load", "Load .milk or texture files");
     loadBtn.title = "Open preset or image files";
@@ -175,24 +250,16 @@ export class UI {
     this.list.appendChild(urlRow);
     this.popups.appendChild(this.list);
 
-    // music queue panel: mirrors the preset panel (header + items + add button)
-    // but anchored bottom-left, with a remove button per track
-    this.queue = el("div", "mw-list mw-queue mw-hidden");
-    const qhead = el("div", "mw-list-head");
-    qhead.appendChild(el("span", "mw-list-title", "Queue"));
-    this.queueCount = el("span", "mw-list-count", "0");
-    qhead.appendChild(this.queueCount);
-    const qclose = el("button", "mw-list-close", "✕");
-    qclose.title = "Close (Esc)";
-    qclose.onclick = (e) => {
-      e.stopPropagation();
-      this.toggleQueue(false);
-    };
-    qhead.appendChild(qclose);
-    this.queue.appendChild(qhead);
-
-    this.queueItems = el("div", "mw-items");
-    this.queue.appendChild(this.queueItems);
+    // music queue panel: same structure as the preset panel, but anchored
+    // bottom-left and with a remove button per track
+    const queuePanel = buildPanel({
+      cls: "mw-queue",
+      title: "Queue",
+      onClose: () => this.toggleQueue(false),
+    });
+    this.queue = queuePanel.root;
+    this.queueCount = queuePanel.count;
+    this.queueItems = queuePanel.items;
 
     const addMusicBtn = el("button", "mw-load", "＋  Add music");
     addMusicBtn.title = "Open audio files to queue";
@@ -563,15 +630,23 @@ export class UI {
     else this.renderList();
   }
 
-  /** Move the `mw-current` highlight to the active preset without rebuilding. */
+  /**
+   * Move the `mw-current` highlight to the active preset without rebuilding.
+   * If the active preset has cycled outside the rendered window, re-render so
+   * the window re-centres on it rather than losing the highlight entirely.
+   */
   private highlightCurrent(): void {
+    let found = false;
     for (const child of this.listItems.children) {
       const item = child as HTMLElement;
-      item.classList.toggle(
-        "mw-current",
-        Number(item.dataset.index) === this.currentIndex,
-      );
+      const isCurrent = Number(item.dataset.index) === this.currentIndex;
+      found ||= isCurrent;
+      item.classList.toggle("mw-current", isCurrent);
     }
+    // Re-centre at most once per change of current preset: after re-rendering,
+    // `renderedFor` matches, so a current preset excluded by the search filter
+    // doesn't rebuild the list on every refresh tick.
+    if (!found && this.renderedFor !== this.currentIndex) this.renderList();
   }
 
   /** Show/hide the preset panel; focuses the search box when opening. */
@@ -588,14 +663,37 @@ export class UI {
     }
   }
 
-  /** (Re)render the list items from the cached playlist + current filter. */
+  /**
+   * (Re)render the list items from the cached playlist + current filter.
+   *
+   * @remarks
+   * Playlists routinely run to thousands of entries (the recommended preset
+   * packs are ~4k presets, and a GitHub folder loads in bulk), so this builds
+   * into a fragment, stops at {@link MAX_LIST_ROWS}, and relies on the
+   * delegated click handler rather than attaching a closure per row.
+   */
   private renderList(): void {
-    this.listItems.replaceChildren();
     const q = this.filter;
-    let shown = 0;
-    this.names.forEach((name, i) => {
-      if (q && !name.toLowerCase().includes(q)) return;
-      shown++;
+    const matches: number[] = [];
+    for (let i = 0; i < this.names.length; i++)
+      if (!q || this.names[i]!.toLowerCase().includes(q)) matches.push(i);
+
+    // Window the matches around the active preset, so it stays visible (and
+    // scrollIntoView-able) even when it sits deep in a multi-thousand playlist.
+    const { start, end } = listWindow(
+      matches.length,
+      matches.indexOf(this.currentIndex),
+      MAX_LIST_ROWS,
+    );
+    this.renderedFor = this.currentIndex;
+
+    const frag = document.createDocumentFragment();
+    // Truncation is reported, never silent: a preset that isn't drawn should
+    // not look like it failed to load.
+    if (start > 0) frag.appendChild(el("div", "mw-empty", `${start} above`));
+    for (let k = start; k < end; k++) {
+      const i = matches[k]!;
+      const name = this.names[i]!;
       const item = el(
         "div",
         "mw-item" + (i === this.currentIndex ? " mw-current" : ""),
@@ -603,18 +701,28 @@ export class UI {
       );
       item.title = name;
       item.dataset.index = String(i);
-      item.onclick = (e) => {
-        e.stopPropagation();
-        this.cb.onJump(i);
-      };
-      this.listItems.appendChild(item);
-    });
-    if (shown === 0) {
-      const msg = this.names.length
-        ? "No presets match your search"
-        : "No presets loaded yet";
-      this.listItems.appendChild(el("div", "mw-empty", msg));
+      frag.appendChild(item);
     }
+    if (matches.length === 0) {
+      frag.appendChild(
+        el(
+          "div",
+          "mw-empty",
+          this.names.length
+            ? "No presets match your search"
+            : "No presets loaded yet",
+        ),
+      );
+    } else if (end < matches.length) {
+      frag.appendChild(
+        el(
+          "div",
+          "mw-empty",
+          `${matches.length - end} more - search to narrow the list`,
+        ),
+      );
+    }
+    this.listItems.replaceChildren(frag);
   }
 
   /**

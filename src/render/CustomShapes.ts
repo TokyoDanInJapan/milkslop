@@ -9,6 +9,7 @@
 
 import { ColorBatch, FLOATS_PER_VERT } from "./ColorBatch.ts";
 import { linkProgram } from "./gl.ts";
+import { THICK_PASSES, THICK_PASS_STEPS } from "./thickLines.ts";
 import type { Aspect } from "./warp.ts";
 import type { CompiledPreset } from "../preset/CompiledPreset.ts";
 import { constants } from "../config.ts";
@@ -191,12 +192,15 @@ export class CustomShapes {
 
         // border outline
         if (p.borderA > 0) {
-          const its = p.thick ? 4 : 1;
+          const its = p.thick ? THICK_PASSES : 1;
           const xInc = 2 / texSizeX;
           const yInc = 2 / texSizeY;
           for (let it = 0; it < its; it++) {
-            const ox = it === 1 ? xInc : it === 3 ? -xInc : 0;
-            const oy = it === 2 ? yInc : 0;
+            // Absolute (not cumulative) - the geometry is rebuilt each pass,
+            // so the step is added to the base position. See thickLines.ts.
+            const step = THICK_PASS_STEPS[it]!;
+            const ox = step[0] * xInc;
+            const oy = step[1] * yInc;
             let bv = 0;
             for (let j = 0; j <= sides; j++) {
               const t = (j % sides) / sides;

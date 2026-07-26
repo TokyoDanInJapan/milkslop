@@ -38,6 +38,7 @@ export interface Constants {
     maxCustomWaves: number;
     maxCustomShapes: number;
     defaultRating: number;
+    maxShapeInstances: number;
   };
   audio: {
     waveSamples: number;
@@ -118,6 +119,7 @@ const CONFIG_SPEC: GroupSpec = {
       maxCustomWaves: "number",
       maxCustomShapes: "number",
       defaultRating: "number",
+      maxShapeInstances: "number",
     },
     audio: {
       waveSamples: "number",
