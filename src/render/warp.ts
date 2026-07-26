@@ -94,10 +94,21 @@ export function vertexRadAng(
   return { rad, ang };
 }
 
+/** A texture coordinate; a mutable cell so hot loops can reuse one. */
+export interface UV {
+  u: number;
+  v: number;
+}
+
 /**
  * Compute the warped (u,v) sample coordinate for one grid vertex.
  * nx, ny: base vertex position in clip space [-1,1]. rad: precomputed radius.
  * Mirrors milkdropfs.cpp:1877-1920 exactly.
+ *
+ * @remarks
+ * Allocates its result. The per-vertex driver runs this thousands of times a
+ * frame, so it uses {@link computeWarpUVInto} with a reused cell instead; this
+ * wrapper is the convenient (and unit-tested) form.
  */
 export function computeWarpUV(
   nx: number,
@@ -106,7 +117,33 @@ export function computeWarpUV(
   p: WarpParams,
   frame: WarpFrame,
   a: Aspect,
-): { u: number; v: number } {
+): UV {
+  const out: UV = { u: 0, v: 0 };
+  computeWarpUVInto(out, nx, ny, rad, p, frame, a);
+  return out;
+}
+
+/**
+ * {@link computeWarpUV}, writing into a caller-owned cell so a per-vertex loop
+ * allocates nothing.
+ *
+ * @param out - Cell to receive the coordinate; overwritten.
+ * @param nx - Base vertex x in clip space [-1, 1].
+ * @param ny - Base vertex y in clip space [-1, 1].
+ * @param rad - Precomputed vertex radius.
+ * @param p - Per-vertex displacement parameters.
+ * @param frame - Frame-global warp inputs.
+ * @param a - Aspect correction.
+ */
+export function computeWarpUVInto(
+  out: UV,
+  nx: number,
+  ny: number,
+  rad: number,
+  p: WarpParams,
+  frame: WarpFrame,
+  a: Aspect,
+): void {
   const zoom2 = Math.pow(p.zoom, Math.pow(p.zoomExp, rad * 2.0 - 1.0));
   const zoom2Inv = 1.0 / zoom2;
 
@@ -147,5 +184,6 @@ export function computeWarpUV(
   u += frame.texelOffsetX;
   v += frame.texelOffsetY;
 
-  return { u, v };
+  out.u = u;
+  out.v = v;
 }

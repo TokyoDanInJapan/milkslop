@@ -6,6 +6,7 @@ import { createGL } from "../render/gl.ts";
 import { Visualizer, type PresetEntry } from "./Visualizer.ts";
 import { UI } from "./ui.ts";
 import { AudioEngine, WAVE_SAMPLES } from "../audio/AudioEngine.ts";
+import { MusicQueue } from "./MusicQueue.ts";
 import defaultPreset from "../presets/default.milk?raw";
 import flowPreset from "../presets/flow.milk?raw";
 import frothPreset from "../presets/froth.milk?raw";
@@ -123,12 +124,12 @@ function initApp(w: number, h: number): void {
     onNext: nextPreset,
     onJump: (i) => viz!.jumpTo(i),
     onQueueFiles: enqueueAudio,
-    onQueuePlay: (i) => void playQueueAt(i),
-    onQueueRemove: removeFromQueue,
-    onTrackPrev: prevTrack,
-    onTrackNext: nextTrack,
-    onTrackPlayPause: togglePlayPause,
-    onSeek: seekCurrent,
+    onQueuePlay: (i) => void queue.playAt(i),
+    onQueueRemove: (i) => queue.remove(i),
+    onTrackPrev: () => queue.prev(),
+    onTrackNext: () => queue.next(),
+    onTrackPlayPause: () => queue.togglePlayPause(),
+    onSeek: (fraction) => queue.seek(fraction),
     onAddPresets: (entries) => {
       viz!.appendPresets(entries);
       refreshUI();
@@ -204,13 +205,14 @@ function loop(): void {
 
   // While frozen, re-render the same state (dt 0, no audio) so the image holds
   // and still survives canvas resizes, without advancing motion or reacting.
-  viz!.frame(frozen ? SILENT_FRAME : buildAudioFrame(), frozen ? 0 : dt);
+  viz!.frame(
+    frozen ? SILENT_FRAME : buildAudioFrame(),
+    frozen ? 0 : dt,
+    fpsAvg,
+  );
 
   // keep the music seek bar tracking the current track's position
-  ui?.setPlayback(
-    currentAudioEl?.currentTime ?? 0,
-    currentAudioEl?.duration ?? 0,
-  );
+  ui?.setPlayback(queue.currentTime, queue.duration);
 
   if ((frames++ & 31) === 0) refreshUI();
 }
@@ -225,122 +227,32 @@ function ensureAudio(): AudioEngine {
 }
 
 // ── Music queue ────────────────────────────────────────────────────────────
-// An ordered list of audio files. Tracks auto-advance on end and wrap around;
-// a single-track queue loops gaplessly on the same element.
-const queue: File[] = [];
-let queueIndex = -1;
-let currentAudioEl: HTMLAudioElement | null = null;
+// Ordering, auto-advance, and playback lifecycle live in MusicQueue; this side
+// binds it to the audio engine and the UI.
+const queue = new MusicQueue({
+  open: (file) => ensureAudio().connectAudioFile(file),
+  onChange: refreshQueueUI,
+  onPlayingChange: (playing) => ui?.setPlaying(playing),
+  onTrackChange: (name) => {
+    ui?.setSource(`♪ ${name}`);
+    ui?.showTitle(`♪ ${name}`);
+  },
+  onEmpty: () => ui?.setSource("-"),
+  onError: (message) => ui?.notify(`Audio error: ${message}`),
+});
 
 /** Push the current music queue and playing index into the UI. */
 function refreshQueueUI(): void {
-  ui?.setQueue(
-    queue.map((f) => f.name),
-    queueIndex,
-  );
+  ui?.setQueue(queue.names, queue.currentIndex);
 }
 
 /** Append audio files; start playback from the first one if nothing's playing. */
 function enqueueAudio(files: File[]): void {
-  const wasEmpty = queue.length === 0;
-  queue.push(...files);
-  if (wasEmpty) void playQueueAt(0);
-  else refreshQueueUI();
+  queue.add(files);
   ui?.notify(
     `Queued ${files.length} track${files.length === 1 ? "" : "s"}`,
     2500,
   );
-}
-
-/** Play the queued track at `index`, wiring auto-advance to the next track. */
-async function playQueueAt(index: number): Promise<void> {
-  if (index < 0 || index >= queue.length) return;
-  queueIndex = index;
-  const file = queue[index]!;
-  try {
-    const el = await ensureAudio().connectAudioFile(file);
-    el.loop = false; // we drive advancement ourselves (see onended below)
-    if (currentAudioEl && currentAudioEl !== el) {
-      currentAudioEl.onended = null;
-      currentAudioEl.onplay = null;
-      currentAudioEl.onpause = null;
-      try {
-        URL.revokeObjectURL(currentAudioEl.src);
-      } catch {
-        /* not an object URL */
-      }
-    }
-    currentAudioEl = el;
-    el.onended = () => {
-      if (queue.length <= 1) {
-        el.currentTime = 0;
-        void el.play(); // single track → seamless loop
-      } else {
-        void playQueueAt((queueIndex + 1) % queue.length);
-      }
-    };
-    el.onplay = () => ui?.setPlaying(true);
-    el.onpause = () => ui?.setPlaying(false);
-    // connectAudioFile() already started playback before these handlers were
-    // attached, so sync the button to the element's current state directly.
-    ui?.setPlaying(!el.paused);
-    ui?.setSource(`♪ ${file.name}`);
-    ui?.showTitle(`♪ ${file.name}`);
-  } catch (err) {
-    ui?.notify(`Audio error: ${(err as Error).message}`);
-  }
-  refreshQueueUI();
-}
-
-/** Seek the current track to `fraction` (0–1) of its duration. */
-function seekCurrent(fraction: number): void {
-  const el = currentAudioEl;
-  if (el && Number.isFinite(el.duration) && el.duration > 0)
-    el.currentTime = Math.max(0, Math.min(1, fraction)) * el.duration;
-}
-
-/** Skip to the previous queued track (wraps around). No-op on an empty queue. */
-function prevTrack(): void {
-  if (queue.length === 0) return;
-  const from = queueIndex < 0 ? 0 : queueIndex;
-  void playQueueAt((from - 1 + queue.length) % queue.length);
-}
-
-/** Skip to the next queued track (wraps around). No-op on an empty queue. */
-function nextTrack(): void {
-  if (queue.length === 0) return;
-  const from = queueIndex < 0 ? -1 : queueIndex;
-  void playQueueAt((from + 1) % queue.length);
-}
-
-/** Toggle play/pause of the current track, or start the queue if nothing's loaded. */
-function togglePlayPause(): void {
-  const el = currentAudioEl;
-  if (el) {
-    if (el.paused) void el.play();
-    else el.pause();
-  } else if (queue.length > 0) {
-    void playQueueAt(queueIndex < 0 ? 0 : queueIndex);
-  }
-}
-
-/** Remove a queued track, advancing playback if the current one was removed. */
-function removeFromQueue(index: number): void {
-  if (index < 0 || index >= queue.length) return;
-  const wasCurrent = index === queueIndex;
-  queue.splice(index, 1);
-  if (queue.length === 0) {
-    queueIndex = -1;
-    if (currentAudioEl) {
-      currentAudioEl.onended = null;
-      currentAudioEl.pause();
-    }
-    ui?.setSource("-");
-  } else if (wasCurrent) {
-    void playQueueAt(index % queue.length);
-  } else if (index < queueIndex) {
-    queueIndex--; // the playing track shifted down by one
-  }
-  refreshQueueUI();
 }
 
 /** Advance to the next preset (with a blend). */

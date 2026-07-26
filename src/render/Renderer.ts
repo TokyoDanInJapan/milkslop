@@ -30,6 +30,7 @@ import { transpile } from "../shader/transpile.ts";
 import { buildFragmentShader, userSamplersOf } from "../shader/environment.ts";
 import { ShaderPass, type ShaderFrameState } from "../shader/ShaderPass.ts";
 import type { CompiledPreset } from "../preset/CompiledPreset.ts";
+import { clamp } from "../util/math.ts";
 
 /** A preset shader that failed to transpile/compile, with the fallback engaged. */
 export interface ShaderCompileError {
@@ -88,6 +89,11 @@ export class Renderer {
   private time = 0;
   private presetStart = 0;
   private presetDuration = 30;
+  // Smoothed frames-per-second reported to preset equations and the `fps`
+  // shader uniform (MilkDrop's GetFps()). Supplied by the host each frame;
+  // presets normalise per-frame rates against it, so a stale/constant value
+  // makes them misbehave whenever the real rate isn't 60.
+  private fps = 60;
 
   /**
    * Build the full render pipeline at `texW`×`texH` internal resolution.
@@ -245,7 +251,7 @@ export class Renderer {
     return {
       time: elapsed,
       frame: this.frameNo,
-      fps: 60,
+      fps: this.fps,
       progress:
         this.presetDuration > 0
           ? Math.min(1, elapsed / this.presetDuration)
@@ -265,10 +271,18 @@ export class Renderer {
     };
   }
 
-  /** Render one frame. `dt` in seconds. */
-  frame(audio: AudioFrame, dt: number): void {
+  /**
+   * Render one frame.
+   *
+   * @param audio - This frame's analysed audio.
+   * @param dt - Elapsed time since the previous frame, in seconds.
+   * @param fps - Smoothed frame rate the host is achieving; surfaced to preset
+   *   equations and the `fps` shader uniform. Defaults to the previous value.
+   */
+  frame(audio: AudioFrame, dt: number, fps = this.fps): void {
     const gl = this.gl;
     this.time += dt;
+    if (fps > 0 && Number.isFinite(fps)) this.fps = fps;
     if (!this.preset) {
       this.output.bind();
       gl.clearColor(0, 0, 0, 1);
@@ -496,7 +510,7 @@ export class Renderer {
     return {
       time: elapsed,
       hueCorners: this.hueCorners(elapsed),
-      fps: 60,
+      fps: this.fps,
       frame: this.frameNo,
       progress:
         this.presetDuration > 0
@@ -553,8 +567,4 @@ export class Renderer {
     }
     return out;
   }
-}
-
-function clamp(x: number, lo: number, hi: number): number {
-  return x < lo ? lo : x > hi ? hi : x;
 }

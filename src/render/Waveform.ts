@@ -14,6 +14,7 @@
 
 import { linkProgram } from "./gl.ts";
 import type { Aspect } from "./warp.ts";
+import { applyThickPass, THICK_PASSES } from "./thickLines.ts";
 import { constants } from "../config.ts";
 
 /** Samples actually used per frame (defines.h:188; the buffer holds 576). */
@@ -35,6 +36,12 @@ export interface WaveBuildParams {
   time: number;
   blending: boolean; // skips mode 0's loop-closing vertex, like the original
 }
+
+/**
+ * Floats needed by {@link buildWave}'s vertex buffer: `(576 + 1)` vertices for
+ * the loop-closing dupe, doubled for mode 7's two lines, ×2 floats per vertex.
+ */
+export const WAVE_VERT_FLOATS = (NUM_WAVEFORM_SAMPLES + 1) * 2 * 2;
 
 /** A built waveform: clip-space `[x, y]` pairs plus draw metadata. */
 export interface BuiltWave {
@@ -67,6 +74,10 @@ function texsizeAlphaBase(texSizeX: number): number {
  * @param fR - Right-channel samples.
  * @param a - Aspect correction.
  * @param texSizeX - Feedback width (alpha buckets, vertex caps).
+ * @param into - Optional caller-owned vertex buffer of at least
+ *   {@link WAVE_VERT_FLOATS} floats, reused instead of allocating one. Every
+ *   mode writes its vertices densely over `0..nVerts-1`, so stale contents are
+ *   never read back. The returned `verts` aliases it.
  * @returns Vertices in clip space (y already flipped like the original).
  */
 export function buildWave(
@@ -75,9 +86,10 @@ export function buildWave(
   fR: Float32Array,
   a: Aspect,
   texSizeX: number,
+  into?: Float32Array,
 ): BuiltWave {
   const wave = ((Math.floor(p.mode) % 8) + 8) % 8;
-  const out = new Float32Array((576 + 1) * 2 * 2);
+  const out = into ?? new Float32Array(WAVE_VERT_FLOATS);
   let nVerts = NUM_WAVEFORM_SAMPLES;
   let nBreak = -1;
   let alpha = p.alpha;
@@ -369,7 +381,9 @@ export class Waveform {
   private vao: WebGLVertexArrayObject;
   private vbo: WebGLBuffer;
   private uColor: WebGLUniformLocation | null;
-  private tess = new Float32Array((576 + 3) * 2 * 2);
+  private tess = new Float32Array((NUM_WAVEFORM_SAMPLES + 3) * 2 * 2);
+  // buildWave's vertex scratch, owned here so a frame allocates nothing
+  private verts = new Float32Array(WAVE_VERT_FLOATS);
 
   /** Compile the waveform shader and set up its GL resources. */
   constructor(gl: WebGL2RenderingContext) {
@@ -396,7 +410,7 @@ export class Waveform {
     texH: number,
   ): void {
     const gl = this.gl;
-    const built = buildWave(p, fL, fR, aspect, texW);
+    const built = buildWave(p, fL, fR, aspect, texW, this.verts);
     if (built.alpha < 0.004 || built.nVerts < 2) return;
 
     // maximize color (wave_brighten)
@@ -439,19 +453,11 @@ export class Waveform {
     else gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
     const mode = p.dots ? gl.POINTS : gl.LINE_STRIP;
-    const passes = (p.thick || p.dots) && texW >= 512 ? 4 : 1;
+    const passes = (p.thick || p.dots) && texW >= 512 ? THICK_PASSES : 1;
     const xInc = 2 / texW;
     const yInc = 2 / texH;
     for (let it = 0; it < passes; it++) {
-      if (it === 1)
-        for (let j = 0; j < nVerts; j++)
-          this.tess[j * 2] = this.tess[j * 2]! + xInc;
-      else if (it === 2)
-        for (let j = 0; j < nVerts; j++)
-          this.tess[j * 2 + 1] = this.tess[j * 2 + 1]! + yInc;
-      else if (it === 3)
-        for (let j = 0; j < nVerts; j++)
-          this.tess[j * 2] = this.tess[j * 2]! - xInc;
+      applyThickPass(this.tess, nVerts, 2, it, xInc, yInc);
       gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.tess.subarray(0, nVerts * 2));
       if (nBreak === -1) {
         gl.drawArrays(mode, 0, nVerts);

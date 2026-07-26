@@ -36,6 +36,26 @@ export class VarPool {
   }
 
   /**
+   * Resolve several names to slot indices at once, allocating any that are new.
+   *
+   * @remarks
+   * For hot loops that touch a fixed set of variables every iteration (the
+   * per-vertex and per-point equation drivers): resolve the indices once, then
+   * read/write {@link buf} directly instead of paying a name lookup per access.
+   * Indices are stable for the lifetime of the pool, but {@link buf} is
+   * reassigned when the pool grows - re-read it after any {@link set} that may
+   * allocate a new slot.
+   *
+   * @param names - Lower-cased variable names.
+   * @returns Their slot indices, in the same order.
+   */
+  indices(names: readonly string[]): Int32Array {
+    const out = new Int32Array(names.length);
+    for (let i = 0; i < names.length; i++) out[i] = this.index(names[i]!);
+    return out;
+  }
+
+  /**
    * @param name - Lower-cased variable name.
    * @returns Whether a slot has been allocated for `name`.
    */

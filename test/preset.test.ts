@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { parseMilk, CompiledPreset } from "../src/preset/index.ts";
+import { MAX_SHAPE_INSTANCES } from "../src/preset/types.ts";
 
 const sample = readFileSync(
   fileURLToPath(new URL("./fixtures/sample.milk", import.meta.url)),
@@ -102,6 +103,30 @@ describe("parseMilk edge cases", () => {
       "old",
     );
     expect(p.warpPSVersion).toBe(0);
+  });
+
+  it("clamps a shape's num_inst so untrusted presets can't stall the loop", () => {
+    const p = parseMilk(
+      "[preset00]\nshapecode_0_enabled=1\nshapecode_0_num_inst=1000000",
+      "huge",
+    );
+    expect(p.shapes[0]!.instances).toBe(MAX_SHAPE_INSTANCES);
+  });
+
+  it("clamps a negative num_inst to zero", () => {
+    const p = parseMilk(
+      "[preset00]\nshapecode_0_enabled=1\nshapecode_0_num_inst=-5",
+      "neg",
+    );
+    expect(p.shapes[0]!.instances).toBe(0);
+  });
+
+  it("leaves a normal num_inst untouched", () => {
+    const p = parseMilk(
+      "[preset00]\nshapecode_0_enabled=1\nshapecode_0_num_inst=7",
+      "ok",
+    );
+    expect(p.shapes[0]!.instances).toBe(7);
   });
 });
 
