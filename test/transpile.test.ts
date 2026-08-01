@@ -162,7 +162,7 @@ describe("HLSL → GLSL transpile", () => {
     expect(r.body).toContain("float mask = float((q1 <= 1.0))");
   });
 
-  it("converts matrix brace initializers to constructor calls", () => {
+  it("converts matrix brace initialisers to constructor calls", () => {
     const r = transpile("shader_body { float2x2 m = { 1.0, 0.0, 0.0, 1.0 }; }");
     expect(r.body).toContain("mat2 m = mat2( 1.0, 0.0, 0.0, 1.0 )");
   });
@@ -191,11 +191,11 @@ describe("HLSL → GLSL transpile", () => {
     expect(r.body).toContain("min(uv.xyy, 0.5)");
   });
 
-  it("hoists uniform-initialized globals into main()", () => {
+  it("hoists uniform-initialised globals into main()", () => {
     const r = transpile(
       "float3 sxy = float3(q4,q5,q6);\nshader_body { ret = sxy; }",
     );
-    // declaration stays global without the initializer…
+    // declaration stays global without the initialiser…
     expect(r.preamble).toContain("vec3 sxy;");
     expect(r.preamble).not.toContain("sxy = vec3(q4");
     // …and the assignment moves to the top of the body

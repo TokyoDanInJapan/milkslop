@@ -8,7 +8,7 @@
  * vertical passes, each level at half the previous resolution.
  *
  * The original compresses each level into `[blur_min, blur_max]` for 8-bit
- * storage and re-expands in `GetBlur`; the round trip is identity *except*
+ * storage and re-expands in `GetBlur`. The round trip is identity *except*
  * that storage saturation clamps the effective output to `[min, max]`. With
  * float targets we reproduce that by clamping directly at the end of each
  * level. Level 1 also applies the `blur1_edge_darken` fade
@@ -30,7 +30,7 @@ export interface BlurParams {
  * Sanitise the per-level blur ranges like `GetSafeBlurMinMax`
  * (milkdropfs.cpp:1551): later levels' ranges can only narrow, and a
  * too-small gap is pushed back apart. (The original assigns `avg - dist/2`
- * to both ends - an evident typo that would zero the range; we use the
+ * to both ends - an evident typo that would zero the range. We use the
  * intended `avg ± dist/2`.)
  */
 export function safeBlurMinMax(p: BlurParams): {
@@ -89,7 +89,7 @@ void main() {
   c += (texture(uSrc, vUv + uDir*7.0).rgb + texture(uSrc, vUv - uDir*7.0).rgb) * w7;
   c /= wsum;
   // clamp to the level's [blur_min, blur_max] (the original's storage
-  // saturation), then darken toward the texture edges on level 1
+  // saturation), then darken towards the texture edges on level 1
   c = clamp(c, vec3(uClamp.x), vec3(uClamp.y));
   float d = min(min(vUv.x, vUv.y), 1.0 - max(vUv.x, vUv.y));
   c *= uEdge.x + uEdge.y * clamp(d * ${EDGE_SCALE}, 0.0, 1.0);
@@ -177,7 +177,7 @@ export class BlurPasses {
       gl.uniform2f(this.uClamp, -1e6, 1e6);
       gl.uniform2f(this.uEdge, 1, 0);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-      // vertical: tmp → lvl, with the level's range clamp; edge darken is
+      // vertical: tmp → lvl, with the level's range clamp. Edge darken is
       // applied on level 1 only (milkdropfs.cpp:1740 - repeating it would
       // paint black bands into the heavier levels)
       lvl.bind();

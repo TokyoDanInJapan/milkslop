@@ -4,7 +4,7 @@
  * audio files. Auto-hides the chrome when the mouse is idle.
  */
 
-import type { PresetEntry } from "./Visualizer.ts";
+import type { PresetEntry } from "./Visualiser.ts";
 import { el, fmtTime } from "./dom.ts";
 import {
   loadPresetsFromUrl,
@@ -166,12 +166,12 @@ export class UI {
     this.titleEl = el("div", "mw-title");
     this.root.appendChild(this.titleEl);
 
-    // transient notification toast (e.g. shader-compile failures)
+    // transient notification toast (for example, shader-compile failures)
     this.noticeEl = el("div", "mw-notice");
     this.root.appendChild(this.noticeEl);
 
     // Container for the floating menus. On wide screens it's display:contents, so
-    // each panel docks to its own edge (presets right, queue left); on narrow
+    // each panel docks to its own edge (presets right, queue left). On narrow
     // screens it becomes a centred flex column above the bar, so multiple open
     // menus stack instead of overlapping (see the media query).
     this.popups = el("div", "mw-popups");
@@ -277,7 +277,7 @@ export class UI {
     //          transport, then fullscreen / help
     this.toolbar = el("div", "mw-bar");
 
-    // seek strip (position in the current track). Dragging scrubs; position
+    // seek strip (position in the current track). Dragging scrubs. Position
     // updates pause while `seeking` so the thumb doesn't fight the playhead.
     this.seekInput = el("input", "mw-seek");
     this.seekInput.type = "range";
@@ -385,7 +385,7 @@ export class UI {
     fps.step = "1";
     fps.value = "60";
     fps.title = "Frame-rate cap in Hz (0 = off)";
-    // readout is "current/max" fps; the current half is pushed in via setFps()
+    // readout is "current/max" fps. The current half is pushed in via setFps()
     this.fpsReadout = el("div", "mw-sliderval mw-fpsval", "—/60");
     fps.oninput = () => {
       this.fpsCap = parseInt(fps.value, 10);
@@ -439,7 +439,7 @@ export class UI {
     );
     winBtn.classList.add("mw-sep"); // subtle divider from the preset controls
     // render-settings toggle: only visible on narrow screens (where the inline
-    // sliders collapse into a panel); hidden by CSS on wide ones.
+    // sliders collapse into a panel). Hidden by CSS on wide ones.
     const settingsBtn = mkBtn(
       "⚙",
       "Render settings",
@@ -553,7 +553,7 @@ export class UI {
 
   /**
    * Update the music seek bar's position and time readout. Pass a non-finite or
-   * zero `duration` (e.g. no track playing) to disable and reset the bar. While
+   * zero `duration` (for example, no track playing) to disable and reset the bar. While
    * the user is dragging the bar, the position is left alone so it doesn't fight
    * the scrub.
    */

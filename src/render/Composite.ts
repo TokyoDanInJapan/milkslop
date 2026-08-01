@@ -3,7 +3,7 @@
  * the screen, applying video echo, gamma, and the invert/brighten/darken/
  * solarize colour filters.
  *
- * In the original these are multiple additive draws; here they fold into one
+ * In the original these are multiple additive draws. Here they fold into one
  * fragment shader. Gamma multiplies brightness (gamma 2 ≈ the additive double
  * draw). Echo blends the main image with a zoomed/oriented copy.
  */

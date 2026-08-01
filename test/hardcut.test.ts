@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { stepHardCut } from "../src/app/Visualizer.ts";
+import { stepHardCut } from "../src/app/Visualiser.ts";
 
 const BASE = 2.5;
 const HALFLIFE = 60;
@@ -18,17 +18,17 @@ describe("stepHardCut", () => {
     expect(r.trigger).toBe(false);
   });
 
-  it("decays toward the base loudness when quiet", () => {
+  it("decays towards the base loudness when quiet", () => {
     const r = stepHardCut(10, 0, BASE, HALFLIFE, FPS);
     expect(r.trigger).toBe(false);
-    // moves toward base but not past it in one frame
+    // moves towards base but not past it in one frame
     expect(r.thresh).toBeLessThan(10);
     expect(r.thresh).toBeGreaterThan(BASE);
   });
 
   it("decay converges to base over a long quiet stretch", () => {
     let t = 20;
-    // halflife is in seconds; at 60fps full convergence takes tens of
+    // halflife is in seconds. At 60fps full convergence takes tens of
     // thousands of frames (~1000s here)
     for (let i = 0; i < 60000; i++)
       t = stepHardCut(t, 0, BASE, HALFLIFE, FPS).thresh;

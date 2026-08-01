@@ -57,7 +57,7 @@ describe("buildWave", () => {
     );
   });
 
-  it("mode 2 centers on (wave_x, wave_y) with the y-axis flip", () => {
+  it("mode 2 centres on (wave_x, wave_y) with the y-axis flip", () => {
     const w = buildWave(
       params({ mode: 2, x: 0.75, y: 0.25 }),
       silence,
@@ -111,7 +111,7 @@ describe("buildWave", () => {
     expect(w.nVerts).toBe(NUM_WAVEFORM_SAMPLES);
     // 0.8 × 0.11 bucket for 1024
     expect(w.alpha).toBeCloseTo(0.8 * 0.11, 5);
-    // silence → complex product is zero → centered at (posX, -posY) = (0, 0)
+    // silence → complex product is zero → centred at (posX, -posY) = (0, 0)
     expect(w.verts[0]).toBeCloseTo(0, 6);
     expect(w.verts[1]).toBeCloseTo(0, 6);
   });

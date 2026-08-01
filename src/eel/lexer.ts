@@ -2,8 +2,8 @@
  * Tokenizer for the MilkDrop expression language.
  *
  * @remarks
- * Identifiers are case-insensitive (lower-cased here); `//` and block comments
- * are stripped; numbers may have a fraction/exponent or be `0x` hex literals.
+ * Identifiers are case-insensitive (lower-cased here). `//` and block comments
+ * are stripped. Numbers may have a fraction/exponent or be `0x` hex literals.
  */
 
 /** The kinds of token produced by {@link tokenize}. */
@@ -133,7 +133,7 @@ export function tokenize(src: string): Token[] {
       continue;
     }
 
-    // identifiers (lower-cased; ns-eel is case-insensitive)
+    // identifiers (lower-cased, because ns-eel is case-insensitive)
     if (isIdentStart(c)) {
       const start = i;
       while (i < n && isIdentChar(src[i]!)) i++;

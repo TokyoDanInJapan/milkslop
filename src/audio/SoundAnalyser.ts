@@ -3,8 +3,8 @@
  * each hovers around 1.0 (cf. AnalyzeNewSound in pluginshell.cpp). This is what
  * drives the bass / bass_att / mid / treb / ... variables in preset equations.
  *
- * A faithful multi-timescale port (imm/avg/med_avg/long_avg) is a later refinement;
- * this gives the immediate value and an attenuated (smoothed) value per band.
+ * A faithful multi-timescale port (imm/avg/med_avg/long_avg) is a later refinement.
+ * This gives the immediate value and an attenuated (smoothed) value per band.
  */
 
 import { constants } from "../config.ts";
@@ -19,8 +19,8 @@ export interface Bands {
   trebAtt: number;
 }
 
-/** Reduces a spectrum to normalized bass/mid/treb bands at two timescales. */
-export class SoundAnalyzer {
+/** Reduces a spectrum to normalised bass/mid/treb bands at two timescales. */
+export class SoundAnalyser {
   // long-term averages used to normalise (so imm_rel ≈ 1)
   private avg = [1, 1, 1];
   private att = [1, 1, 1];
@@ -43,7 +43,7 @@ export class SoundAnalyzer {
     this.imm[1] = mid / (b2 - b1);
     this.imm[2] = treb / (n - b2);
 
-    // adapt the long-term average toward the immediate value (slow)
+    // adapt the long-term average towards the immediate value (slow)
     const avgK = 1 - Math.exp(-dt / constants.audio.avgTimeConstant);
     const attK = 1 - Math.exp(-dt / constants.audio.attTimeConstant);
     const out: number[] = [0, 0, 0];

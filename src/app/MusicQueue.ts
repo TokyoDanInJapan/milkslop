@@ -3,7 +3,7 @@
  * the playback wiring that keeps one {@link HTMLAudioElement} alive at a time.
  *
  * @remarks
- * Tracks auto-advance on end and wrap around; a single-track queue loops on the
+ * Tracks auto-advance on end and wrap around. A single-track queue loops on the
  * same element. The queue owns only ordering and playback lifecycle - opening a
  * file and every user-visible side effect are injected, so the ordering rules
  * (removal index shifting, wrap-around, restart-vs-advance) are unit-testable
@@ -80,7 +80,7 @@ export class MusicQueue {
   /**
    * Play the queued track at `index`, wiring auto-advance to the next one.
    *
-   * @param index - Queue position to play; out-of-range indices are ignored.
+   * @param index - Queue position to play. Out-of-range indices are ignored.
    */
   async playAt(index: number): Promise<void> {
     if (index < 0 || index >= this.items.length) return;
@@ -131,7 +131,7 @@ export class MusicQueue {
   /**
    * Remove a queued track, advancing playback if the current one was removed.
    *
-   * @param index - Queue position to remove; out-of-range indices are ignored.
+   * @param index - Queue position to remove. Out-of-range indices are ignored.
    */
   remove(index: number): void {
     if (index < 0 || index >= this.items.length) return;

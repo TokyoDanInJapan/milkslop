@@ -7,10 +7,10 @@
  * ≤ 0.001 is skipped.
  *
  * The geometry helpers are pure and unit-tested; {@link Borders} is the thin
- * GL wrapper that draws them via a {@link ColorBatch}.
+ * GL wrapper that draws them via a {@link ColourBatch}.
  */
 
-import { ColorBatch, FLOATS_PER_VERT } from "./ColorBatch.ts";
+import { ColourBatch, FLOATS_PER_VERT } from "./ColourBatch.ts";
 import { constants } from "../config.ts";
 
 /** Per-frame border values (post-equation `ob_*` / `ib_*` variables). */
@@ -69,8 +69,8 @@ export const VERTS_PER_BORDER = constants.borders.vertsPerBorder;
 /**
  * Positions (clip-space `[x, y]` pairs, `2 * VERTS_PER_BORDER` floats) for one
  * border ring. The original draws a 4-vertex triangle fan
- * `(i,i) (o,o) (o,-o) (i,-i)` four times, rotating it 90° between draws;
- * this returns the same fans pre-triangulated for a single TRIANGLES draw.
+ * `(i,i) (o,o) (o,-o) (i,-i)` four times, rotating it 90° between draws.
+ * This returns the same fans pre-triangulated for a single TRIANGLES draw.
  */
 export function borderPositions(
   innerRad: number,
@@ -117,12 +117,12 @@ export function darkenCenterVerts(aspectY: number): number[][] {
 /** Draws the outer and inner preset borders into the feedback buffer. */
 export class Borders {
   private gl: WebGL2RenderingContext;
-  private batch: ColorBatch;
+  private batch: ColourBatch;
 
   /** Set up the GL batch used to draw borders and the centre darken pass. */
   constructor(gl: WebGL2RenderingContext) {
     this.gl = gl;
-    this.batch = new ColorBatch(gl, VERTS_PER_BORDER);
+    this.batch = new ColourBatch(gl, VERTS_PER_BORDER);
   }
 
   /** Draw both borders (outer first, like the original); no-ops on alpha 0. */

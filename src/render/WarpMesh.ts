@@ -54,8 +54,8 @@ uniform sampler2D uPrev;
 uniform float uDecay;
 void main() {
   vec3 c = texture(uPrev, vec2(vUv.x, 1.0 - vUv.y)).rgb;
-  // MilkDrop's feedback surfaces are fixed-point and clamp at 1.0 each frame;
-  // our RGBA16F buffer must clamp explicitly or additive energy blows out.
+  // MilkDrop's feedback surfaces are fixed-point and clamp at 1.0 each frame.
+  // Our RGBA16F buffer must clamp explicitly or additive energy blows out.
   fragColor = vec4(clamp(c * uDecay, 0.0, 1.0), 1.0);
 }`;
 
@@ -343,7 +343,7 @@ export class WarpMesh {
       // `buf` is re-read each vertex: per_pixel code that first touches a new
       // variable grows the pool, which reassigns the backing array.
       let buf = ppVars.buf;
-      // seed per-vertex inputs (D3D math-space x,y in 0..1)
+      // seed per-vertex inputs (D3D mathematical-space x,y in 0..1)
       buf[s0] = nx * 0.5 * aspect.aspectX + 0.5;
       buf[s1] = ny * -0.5 * aspect.aspectY + 0.5;
       buf[s2] = rad;

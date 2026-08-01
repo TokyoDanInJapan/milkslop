@@ -3,7 +3,7 @@
  *
  * Unlike make-mini-corpus.mjs (which set-covers real, user-authored presets),
  * this emits presets from scratch - each deliberately crafted to exercise a
- * group of features - so the test set is self-contained and license-free. It
+ * group of features - so the test set is self-contained and licence-free. It
  * then self-verifies: every generated preset is parsed, compiled, and run for
  * one frame (must not throw), and the union of detected features is checked
  * against FEATURE_UNIVERSE. Exits non-zero if any target feature is uncovered.
@@ -79,7 +79,7 @@ function milk(spec) {
 }
 
 // A comp shader that touches every shader-environment feature the detector
-// knows. Real math is neutralised (×0.001) so it stays a valid, compiling
+// knows. Real maths is neutralised (×0.001) so it stays a valid, compiling
 // shader without needing meaningful texture content.
 const KITCHEN_COMP = [
   "sampler sampler_mytex;",
@@ -117,7 +117,7 @@ const SIMPLE_COMP = [
   "}",
 ];
 
-// One wave-mode preset per mode (0–8); spare single-value toggles are spread
+// One wave-mode preset per mode (0–8). Spare single-value toggles are spread
 // across them so each preset does double duty.
 const waveModeExtras = [
   { fVideoEchoAlpha: 0.5, nVideoEchoOrientation: 0, bAdditiveWaves: 1 },

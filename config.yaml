@@ -7,21 +7,22 @@
 #
 #   constants - faithful 1:1 transcriptions of MilkDrop internals plus a few
 #               structural invariants (vertex/buffer layout, register counts).
-#               Each carries its source provenance. These are NOT tuning knobs:
-#               changing them changes fidelity and should match the original C++
-#               source (or the layout they describe).
+#               Each carries its source provenance. These are NOT tuning knobs.
+#               Changing them changes fidelity. They must match the original C++
+#               source, or the layout they describe.
 #
-# Loaded at build time via src/config.ts (see the Vite yaml plugin in
-# vite.config.ts); the named constants exported across src/ read from here.
-# Note: coefficients embedded inside a single transcribed formula (e.g. the
-# warp-UV math) stay inline in code - only named, standalone globals live here.
+# Loaded at build time through src/config.ts (see the Vite yaml plugin in
+# vite.config.ts). The named constants exported across src/ read from here.
+# Note: coefficients embedded inside a single transcribed formula (for example,
+# the warp-UV maths) stay inline in code. Only named, standalone globals live
+# here.
 
 tunables:
-  # Playback / cycling (src/app/Visualizer.ts)
+  # Playback / cycling (src/app/Visualiser.ts)
   timeBetweenPresets: 16 # seconds on screen before auto-cycle (fTimeBetweenPresets)
   fastModeInterval: 4 # ?fast cycle interval, seconds
   blendDuration: 2.7 # crossfade duration, seconds (fBlendTimeAuto)
-  shuffle: false # rating-weighted random order vs. sequential
+  shuffle: false # rating-weighted random order instead of sequential
   # Hard cuts - beat-driven preset changes
   hardCutsEnabled: false # !bHardCutsDisabled
   hardCutLoudness: 2.5 # fHardCutLoudnessThresh
@@ -51,7 +52,7 @@ constants:
     waveSamples: 576 # fWaveform[2][576] (pluginshell.h:61)
     bassEdge: 0.04 # spectrum fraction: bass/mid split
     midEdge: 0.18 # spectrum fraction: mid/treb split
-    avgTimeConstant: 0.5 # band long-average normalization, seconds
+    avgTimeConstant: 0.5 # band long-average normalisation, seconds
     attTimeConstant: 0.15 # band attenuated-value smoothing, seconds
   warp:
     # animated warp coefficients (milkdropfs.cpp:1785):
@@ -85,5 +86,5 @@ constants:
   hardCut:
     decayConstant: -1.3863 # per-frame decay exponent = -ln(4) (milkdropfs.cpp:925)
   layout:
-    floatsPerVert: 6 # ColorBatch vertex stride: [x, y, r, g, b, a]
+    floatsPerVert: 6 # ColourBatch vertex stride: [x, y, r, g, b, a]
     texFloatsPerVert: 8 # textured-shape vertex: [x, y, u, v, r, g, b, a]

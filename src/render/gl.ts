@@ -3,7 +3,7 @@
  */
 
 /**
- * Create the WebGL2 context used by the visualizer.
+ * Create the WebGL2 context used by the visualiser.
  *
  * @param canvas - The target canvas element.
  * @returns The configured WebGL2 context.

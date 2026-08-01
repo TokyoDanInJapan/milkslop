@@ -3,7 +3,7 @@
  */
 
 import { createGL } from "../render/gl.ts";
-import { Visualizer, type PresetEntry } from "./Visualizer.ts";
+import { Visualiser, type PresetEntry } from "./Visualiser.ts";
 import { UI } from "./ui.ts";
 import { AudioEngine, WAVE_SAMPLES } from "../audio/AudioEngine.ts";
 import { MusicQueue } from "./MusicQueue.ts";
@@ -32,7 +32,7 @@ function createGLorFail(): WebGL2RenderingContext | null {
     startEl.style.cursor = "default";
     startEl.innerHTML = `
       <b>Milkslop can't run here</b>
-      <div>This visualizer needs <b>WebGL2</b>, which this browser or GPU
+      <div>This visualiser needs <b>WebGL2</b>, which this browser or GPU
       doesn't support.</div>
       <small>Try a recent Chrome, Edge, or Firefox with hardware acceleration
       enabled.<br><br>${(err as Error).message}</small>`;
@@ -40,7 +40,7 @@ function createGLorFail(): WebGL2RenderingContext | null {
   }
 }
 
-let viz: Visualizer | null = null;
+let viz: Visualiser | null = null;
 let audio: AudioEngine | null = null;
 let ui: UI | null = null;
 
@@ -108,7 +108,7 @@ function refreshUI(): void {
   ui.setFps(fpsAvg);
 }
 
-/** Construct the Visualizer and UI on first frame and wire their callbacks together. */
+/** Construct the Visualiser and UI on first frame and wire their callbacks together. */
 function initApp(w: number, h: number): void {
   const playlist: PresetEntry[] = [
     { name: "default", source: defaultPreset },
@@ -116,8 +116,8 @@ function initApp(w: number, h: number): void {
     { name: "froth", source: frothPreset },
     { name: "rose", source: rosePreset },
   ];
-  // The UI is built first so the Visualizer constructor can already surface
-  // shader-compile failures in the initial preset; its callbacks only touch
+  // The UI is built first so the Visualiser constructor can already surface
+  // shader-compile failures in the initial preset. Its callbacks only touch
   // `viz` when the user interacts, by which point it exists.
   ui = new UI({
     onPrev: prevPreset,
@@ -143,9 +143,9 @@ function initApp(w: number, h: number): void {
     onBlur: setBlur,
   });
 
-  viz = new Visualizer(gl!, w, h, playlist, {
-    // ?fast overrides the configured cycle time with the fast-mode interval;
-    // everything else (blend, hard-cut params, …) defaults from config.yaml
+  viz = new Visualiser(gl!, w, h, playlist, {
+    // ?fast overrides the configured cycle time with the fast-mode interval.
+    // Everything else (blend, hard-cut params, …) defaults from config.yaml
     timeBetweenPresets: params.has("fast")
       ? tunables.fastModeInterval
       : tunables.timeBetweenPresets,
@@ -159,7 +159,7 @@ function initApp(w: number, h: number): void {
   });
 
   // Bundle the froth texture so the "froth" preset's sampler_froth resolves on
-  // load, without the user having to drop an image. Decodes asynchronously; the
+  // load, without the user having to drop an image. Decodes asynchronously. The
   // sampler simply reads black until it's ready a frame or two later.
   void loadBundledTexture("froth", frothTextureUrl);
 
@@ -191,7 +191,7 @@ function loop(): void {
   const now = performance.now();
   // Frame-rate cap: skip this animation frame while we're still ahead of the
   // target interval (prevT only advances on a rendered frame). The 1 ms slack
-  // keeps e.g. a 60 Hz cap from collapsing to 30 on a 60 Hz display due to
+  // keeps a 60 Hz cap from collapsing to 30 on a 60 Hz display due to
   // timer jitter. fpsCap 0 = off → never skip.
   if (fpsCap > 0 && now - prevT < 1000 / fpsCap - 1) return;
 
@@ -227,7 +227,7 @@ function ensureAudio(): AudioEngine {
 }
 
 // ── Music queue ────────────────────────────────────────────────────────────
-// Ordering, auto-advance, and playback lifecycle live in MusicQueue; this side
+// Ordering, auto-advance, and playback lifecycle live in MusicQueue. This side
 // binds it to the audio engine and the UI.
 const queue = new MusicQueue({
   open: (file) => ensureAudio().connectAudioFile(file),
@@ -295,7 +295,7 @@ function setFpsCap(hz: number): void {
 /** Apply a CSS gaussian blur of `pixels` to the whole canvas (0 clears it). */
 function setBlur(pixels: number): void {
   // Soften the whole canvas with the same CSS gaussian the intro overlay uses
-  // (backdrop-filter: blur), rather than touching the visualizer pipeline.
+  // (backdrop-filter: blur), rather than touching the visualiser pipeline.
   canvas.style.filter = pixels > 0 ? `blur(${pixels}px)` : "";
 }
 
@@ -354,9 +354,9 @@ function animateBlur(from: number, to: number, durationMs: number): void {
 
 /** Dismiss the intro overlay and ease the canvas blur into focus; boots audio opt-in. */
 function start(): void {
-  // Dismiss the intro overlay with a brief fade (the visualizer is already
-  // running behind it). Audio is opt-in: drag in (or pick) an audio file;
-  // until then the visuals run on silence.
+  // Dismiss the intro overlay with a brief fade (the visualiser is already
+  // running behind it). Audio is opt-in: drag in (or pick) an audio file.
+  // Until then the visuals run on silence.
   startEl.classList.add("leaving");
   // Remove once the overlay's own fade finishes - ignore the bubbling
   // transitionend events from the title/button "explode out" animations.
@@ -370,7 +370,7 @@ function start(): void {
   animateBlur(INTRO_BLUR_PX, 0, 900);
 }
 
-// Only boot the render loop when WebGL2 is available; otherwise the intro
+// Only boot the render loop when WebGL2 is available. Otherwise the intro
 // overlay shows the unsupported message and we stop here.
 if (gl) {
   startEl.addEventListener("click", start, { once: true });

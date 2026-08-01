@@ -1,7 +1,7 @@
 Milkslop
 ========
 
-A standalone WebGL2 port of the MilkDrop 2 music visualizer.
+A standalone WebGL2 port of the MilkDrop 2 music visualiser.
 
 This software is a derivative work of MilkDrop 2, and incorporates algorithms,
 constants, and shader logic transcribed from the MilkDrop 2 source code, which
@@ -29,5 +29,5 @@ hlslparser - The MIT License (MIT), Copyright (c) 2013-2014 Unknown Worlds
 Entertainment, Inc. The DX9 shader-model-3 convention of taking abs() of the
 argument to sqrt/rsqrt/log/log2/pow (rather than returning NaN for a negative
 argument) is documented in hlslparser's GLSLGenerator.cpp. This project
-implements the same convention independently; no hlslparser code is included.
+implements the same convention independently. No hlslparser code is included.
 This acknowledgement is provided as a courtesy.

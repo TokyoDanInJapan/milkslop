@@ -1,9 +1,9 @@
 /**
- * Pure warp-mesh math, ported 1:1 from CPlugin::ComputeGridAlphaValues
+ * Pure warp-mesh maths, ported 1:1 from CPlugin::ComputeGridAlphaValues
  * (milkdropfs.cpp). Kept free of WebGL so it can be unit-tested in node.
  *
  * For each grid vertex the per-pixel equations may modify zoom/rot/warp/cx/cy/
- * dx/dy/sx/sy; this module turns those per-vertex values into the texture
+ * dx/dy/sx/sy. This module turns those per-vertex values into the texture
  * coordinates used to sample the previous frame.
  */
 
@@ -86,7 +86,7 @@ export function vertexRadAng(
   a: Aspect,
 ): { rad: number; ang: number } {
   const px = nx * a.aspectX;
-  const py = -ny * a.aspectY; // math-space y is flipped (see UV formula)
+  const py = -ny * a.aspectY; // mathematical-space y is flipped (see UV formula)
   const rad =
     Math.sqrt(px * px + py * py) /
     Math.sqrt(a.aspectX * a.aspectX + a.aspectY * a.aspectY);
@@ -107,7 +107,7 @@ export interface UV {
  *
  * @remarks
  * Allocates its result. The per-vertex driver runs this thousands of times a
- * frame, so it uses {@link computeWarpUVInto} with a reused cell instead; this
+ * frame, so it uses {@link computeWarpUVInto} with a reused cell instead. This
  * wrapper is the convenient (and unit-tested) form.
  */
 export function computeWarpUV(
@@ -127,7 +127,7 @@ export function computeWarpUV(
  * {@link computeWarpUV}, writing into a caller-owned cell so a per-vertex loop
  * allocates nothing.
  *
- * @param out - Cell to receive the coordinate; overwritten.
+ * @param out - Cell to receive the coordinate. Overwritten.
  * @param nx - Base vertex x in clip space [-1, 1].
  * @param ny - Base vertex y in clip space [-1, 1].
  * @param rad - Precomputed vertex radius.

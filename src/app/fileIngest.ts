@@ -1,10 +1,10 @@
 /**
  * File and URL ingestion for the UI: window-wide drag-and-drop wiring, routing
  * a mixed batch of files by kind, and fetching `.milk` presets from a web URL.
- * Pure logic + event wiring; the UI class supplies the sink callbacks.
+ * Pure logic + event wiring. The UI class supplies the sink callbacks.
  */
 
-import type { PresetEntry } from "./Visualizer.ts";
+import type { PresetEntry } from "./Visualiser.ts";
 import { fetchMilkFromUrl } from "./presetUrl.ts";
 
 /** Where ingested content and user feedback are delivered. */
@@ -22,9 +22,9 @@ export interface IngestSink {
 }
 
 /**
- * Wire up drag-and-drop onto the window. Dropped files are forwarded to
- * {@link routeFiles}; a dropped link (e.g. a `.milk` URL or a GitHub URL
- * dragged from a browser) is loaded via {@link loadPresetsFromUrl}.
+ * Wire up drag-and-drop onto the window. Dropped files go to
+ * {@link routeFiles}. A dropped link (for example, a `.milk` URL or a GitHub
+ * URL dragged from a browser) goes to {@link loadPresetsFromUrl}.
  */
 export function setupDragDrop(sink: IngestSink): void {
   const prevent = (e: Event) => {
@@ -49,7 +49,7 @@ export function setupDragDrop(sink: IngestSink): void {
       return;
     }
     // No files - a link dragged in from a browser. The URL arrives as
-    // text/uri-list (one URL per line, '#' comments) or text/plain; pull the
+    // text/uri-list (one URL per line, '#' comments) or text/plain. Pull the
     // first real URL and load presets from it (direct .milk or GitHub URL).
     const text = dt?.getData("text/uri-list") || dt?.getData("text/plain");
     const url = text
@@ -87,7 +87,7 @@ export async function routeFiles(
   }
   if (images.length) {
     // bind each image as a user texture keyed by its base filename, so a
-    // preset's sampler_<name> resolves to the matching drop (e.g. pifano.jpg
+    // preset's sampler_<name> resolves to the matching drop (for example, pifano.jpg
     // → sampler_pifano). createImageBitmap decodes off the main thread.
     // allSettled (not all) so one undecodable file doesn't drop the whole
     // batch - the rest still load.
@@ -116,7 +116,7 @@ export async function routeFiles(
  * Accepts a raw/direct `.milk` link, a GitHub single-file (blob) URL, a
  * GitHub folder (tree) URL, or a bare GitHub repo / `.git` URL - folders and
  * repos are listed via the GitHub contents API and every `.milk` in them is
- * fetched. Presets only; any textures they
+ * fetched. Presets only. Any textures they
  * reference must still be supplied locally (drag them in).
  */
 export async function loadPresetsFromUrl(
@@ -148,7 +148,7 @@ export async function loadPresetsFromUrl(
     );
   } catch (e) {
     sink.notify(
-      `Couldn't load from URL: ${e instanceof Error ? e.message : String(e)}`,
+      `Could not load from URL: ${e instanceof Error ? e.message : String(e)}`,
       5000,
     );
   } finally {

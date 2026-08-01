@@ -2,12 +2,12 @@
 
 ## Reporting a Vulnerability
 
-Please report vulnerabilities privately via GitHub's
-[private vulnerability reporting](https://github.com/TokyoDanInJapan/milkslop/security/advisories/new)
-rather than opening a public issue.
+Report vulnerabilities privately through GitHub's
+[private vulnerability reporting](https://github.com/TokyoDanInJapan/milkslop/security/advisories/new).
+Do not open a public issue.
 
-Include steps to reproduce and the potential impact. You can expect an
-initial response within a week.
+Include the steps to reproduce the problem and its potential impact. You can
+expect an initial response within a week.
 
 ## Supported Versions
 

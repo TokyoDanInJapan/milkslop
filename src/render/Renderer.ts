@@ -1,5 +1,5 @@
 /**
- * Renders one preset's frame into an output texture (the Visualizer blits or
+ * Renders one preset's frame into an output texture (the Visualiser blits or
  * crossfades that to the screen). Mirrors the order in CPlugin::RenderFrame
  * (milkdropfs.cpp:752):
  *
@@ -8,7 +8,7 @@
  *   → blur passes → custom shapes → custom waves → basic waveform → borders
  *   → composite (comp shader, or no-shader gamma/echo/invert) → swap buffers
  *
- * A preset may supply warp and/or composite shaders; absent (or on a compile
+ * A preset may supply warp and/or composite shaders. Absent (or on a compile
  * failure) the corresponding no-shader path is used.
  */
 
@@ -24,7 +24,7 @@ import { CustomShapes } from "./CustomShapes.ts";
 import { CustomWaves } from "./CustomWaves.ts";
 import { BlurPasses } from "./BlurPasses.ts";
 import { RenderTarget } from "./RenderTarget.ts";
-import { SoundAnalyzer } from "../audio/SoundAnalyzer.ts";
+import { SoundAnalyser } from "../audio/SoundAnalyser.ts";
 import { createNoiseTextures, type NoiseTextures } from "./NoiseTextures.ts";
 import { transpile } from "../shader/transpile.ts";
 import { buildFragmentShader, userSamplersOf } from "../shader/environment.ts";
@@ -68,7 +68,7 @@ export class Renderer {
   private blur: BlurPasses;
   private quad: WebGLVertexArrayObject;
   private output: RenderTarget;
-  private analyzer = new SoundAnalyzer();
+  private analyser = new SoundAnalyser();
 
   private noise: NoiseTextures;
   private userTextures: Map<string, WebGLTexture>;
@@ -90,8 +90,8 @@ export class Renderer {
   private presetStart = 0;
   private presetDuration = 30;
   // Smoothed frames-per-second reported to preset equations and the `fps`
-  // shader uniform (MilkDrop's GetFps()). Supplied by the host each frame;
-  // presets normalise per-frame rates against it, so a stale/constant value
+  // shader uniform (MilkDrop's GetFps()). Supplied by the host each frame.
+  // Presets normalise per-frame rates against it, so a stale/constant value
   // makes them misbehave whenever the real rate isn't 60.
   private fps = 60;
 
@@ -147,7 +147,7 @@ export class Renderer {
     gl.bindTexture(gl.TEXTURE_2D, null);
   }
 
-  /** The composited frame (the Visualizer blits/crossfades this to screen). */
+  /** The composited frame (the Visualiser blits/crossfades this to screen). */
   get outputTexture(): WebGLTexture {
     return this.output.tex;
   }
@@ -276,7 +276,7 @@ export class Renderer {
    *
    * @param audio - This frame's analysed audio.
    * @param dt - Elapsed time since the previous frame, in seconds.
-   * @param fps - Smoothed frame rate the host is achieving; surfaced to preset
+   * @param fps - Smoothed frame rate the host is achieving. Surfaced to preset
    *   equations and the `fps` shader uniform. Defaults to the previous value.
    */
   frame(audio: AudioFrame, dt: number, fps = this.fps): void {
@@ -290,7 +290,7 @@ export class Renderer {
       return;
     }
 
-    const b = this.analyzer.update(audio.spectrum, dt || 1 / 60);
+    const b = this.analyser.update(audio.spectrum, dt || 1 / 60);
     const inputs: Record<string, number> = {
       ...this.baseInputs(),
       bass: b.bass,
@@ -546,7 +546,7 @@ export class Renderer {
    * MilkDrop 2 (`milkdropfs.cpp:4129-4131`, the `shade[i]` per-frame calc): each
    * corner is a triple of slow sinusoids - phase-seeded by the per-preset {@link hueOffsets}
    * - normalised by its max channel then lifted into `[0.5, 1]`. Returned flat as
-   * four RGB triples (length 12) for the `hue_shader_corners[4]` uniform; the comp
+   * four RGB triples (length 12) for the `hue_shader_corners[4]` uniform. The comp
    * shader bilinearly interpolates them across the screen.
    *
    * @param time - Seconds since the preset loaded.

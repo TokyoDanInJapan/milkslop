@@ -222,7 +222,7 @@ describe("MusicQueue playback", () => {
   });
 
   it("retries from the queue when toggled with no live element", async () => {
-    // the first open fails, so the queue holds a track but no element; the
+    // the first open fails, so the queue holds a track but no element. The
     // play/pause button should start it rather than doing nothing
     const h = harness({ failFirst: true });
     h.queue.add([file("a")]);

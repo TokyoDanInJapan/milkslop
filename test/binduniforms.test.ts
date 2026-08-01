@@ -167,7 +167,7 @@ describe("bindShaderUniforms", () => {
     // units are sequential starting at 0
     const units = callsFor(calls, "uniform1i").map((c) => c.args[1]);
     expect(units).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
-    // the four fc/fw/pc/pw aliases carry sampler objects; the rest bind null
+    // the four fc/fw/pc/pw aliases carry sampler objects. The rest bind null
     const samplers = callsFor(calls, "bindSampler").map((c) => c.args[1]);
     expect(samplers[0]).toBeNull(); // sampler_main
     expect(samplers.slice(1, 5).every((x) => x !== null)).toBe(true);

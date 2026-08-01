@@ -2,7 +2,7 @@
  * MilkDrop's "thick line" fattening: instead of a wide-line primitive, the
  * original redraws a line strip four times, nudged by one texel between passes
  * (`milkdropfs.cpp`'s `DrawWave` / `DrawCustomWaves` / `DrawCustomShapes` all
- * do this). The pass table is shared here; how it is applied is not, because
+ * do this). The pass table is shared here. How it is applied is not, because
  * the call sites legitimately differ:
  *
  * - Waveform and custom waves translate an already-built vertex buffer, so the
@@ -15,7 +15,7 @@
 export const THICK_PASSES = 4;
 
 /**
- * Per-pass `(x, y)` step in texel multiples; scale by `2 / texSize` to get
+ * Per-pass `(x, y)` step in texel multiples. Scale by `2 / texSize` to get
  * clip-space offsets. Index by pass number, `0` being the un-nudged pass.
  */
 export const THICK_PASS_STEPS: readonly (readonly [number, number])[] = [
@@ -33,7 +33,7 @@ export const THICK_PASS_STEPS: readonly (readonly [number, number])[] = [
  * buffer, and the drawn positions trace the box described above. Pass 0 is a
  * no-op, so callers can loop from 0 without a special case.
  *
- * @param verts - Interleaved vertex data; x at `i*stride`, y at `i*stride+1`.
+ * @param verts - Interleaved vertex data. X at `i*stride`, y at `i*stride+1`.
  * @param count - Number of vertices to move.
  * @param stride - Floats per vertex.
  * @param pass - Pass index, 0..{@link THICK_PASSES}-1.

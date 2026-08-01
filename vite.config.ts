@@ -67,11 +67,11 @@ export default defineConfig({
         "src/app/uiStyles.ts",
         "src/app/dom.ts",
         "src/app/fileIngest.ts",
-        "src/app/Visualizer.ts",
+        "src/app/Visualiser.ts",
         // GPU-bound classes exercised via scripts/smoke.mjs and
         // scripts/check-shaders.mjs, not unit tests:
         "src/audio/AudioEngine.ts",
-        "src/render/ColorBatch.ts",
+        "src/render/ColourBatch.ts",
         "src/render/Composite.ts",
         "src/render/CustomShapes.ts",
         "src/render/CustomWaves.ts",
