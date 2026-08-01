@@ -135,7 +135,7 @@ describe("CompiledPreset", () => {
     const preset = new CompiledPreset(parseMilk(sample));
     preset.runInit({ bass: 0, time: 0, frame: 0 });
 
-    // frame 1: bass spikes; per_frame should move zoom/rot and set q1
+    // frame 1: bass spikes. Per_frame should move zoom/rot and set q1
     const ctx = preset.runPerFrame({ bass: 2.0, time: 1.0, frame: 1 });
 
     // mybass = 0*0.9 + 2*0.1 = 0.2 ; q1 = mybass
@@ -165,7 +165,7 @@ describe("CompiledPreset", () => {
   });
 
   it("re-seeds scalar baseline each frame (LoadPerFrameEvallibVars semantics)", () => {
-    // zoom=1.5 in .milk; per_frame doubles it.  Without re-seeding, frame 2
+    // zoom=1.5 in .milk. Per_frame doubles it.  Without re-seeding, frame 2
     // would see zoom=3.0 and output 6.0.  With re-seeding it always outputs 3.0.
     const preset = new CompiledPreset(
       parseMilk("[preset00]\nzoom=1.5\nper_frame_1=zoom=zoom*2;", "reseed"),
@@ -202,7 +202,7 @@ describe("CompiledPreset", () => {
 
 describe("preset library smoke tests", () => {
   // Use only the generated, feature-covering test set (test/presets-gen) so the
-  // unit suite is self-contained and license-free - no dependency on the
+  // unit suite is self-contained and licence-free - no dependency on the
   // user-authored corpus. Regenerate with `npx tsx scripts/gen-test-presets.mjs`.
   const presetsDir = fileURLToPath(new URL("./presets-gen", import.meta.url));
   const files = existsSync(presetsDir)

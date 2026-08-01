@@ -169,8 +169,8 @@ class Parser {
 
   /**
    * Parse `^` (pow). It binds tighter than unary (so `-2^2 == -(2^2) == -4`)
-   * and is right-associative (so the exponent may itself be unary, e.g.
-   * `2^-3`), matching the ns-eel / maths convention.
+   * and is right-associative (so the exponent may itself be unary, for
+   * example `2^-3`), matching the ns-eel / maths convention.
    */
   private parsePow(): Node {
     const base = this.parsePostfix();
@@ -196,7 +196,7 @@ class Parser {
 
   /**
    * Parse a single call argument, which may itself be a `;`-separated block
-   * (e.g. `loop(8, a=a+1; b=b+2)`). Terminated by `,` or `)`.
+   * (for example, `loop(8, a=a+1; b=b+2)`). Terminated by `,` or `)`.
    */
   private parseArg(): Node {
     const body = this.parseStatements(() => {

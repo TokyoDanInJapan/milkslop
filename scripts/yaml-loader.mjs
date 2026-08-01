@@ -1,7 +1,7 @@
 /**
  * Node ESM loader hook for `.yaml` / `.yml` imports - the Node-side equivalent
  * of the Vite yaml plugin in vite.config.ts. The app bundles config.yaml via
- * Vite; the tsx-run scripts under scripts/ import `src/` (and thus
+ * Vite. The tsx-run scripts under scripts/ import `src/` (and thus
  * `../config.yaml`) directly under plain Node, which otherwise rejects the
  * `.yaml` extension. Scripts register this loader before their dynamic
  * `import()`s so the same config drives both paths.

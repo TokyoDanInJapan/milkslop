@@ -128,7 +128,7 @@ interface LValue {
 /**
  * A self-contained evaluation context: its own variable pool and `megabuf`,
  * plus a shared {@link Globals} (`gmegabuf` + registers). Multiple code blocks
- * compiled against one context share variables; separate contexts are isolated
+ * compiled against one context share variables. Separate contexts are isolated
  * except for the shared globals.
  */
 export class EelContext {
@@ -140,7 +140,7 @@ export class EelContext {
   readonly globals: Globals;
 
   /**
-   * @param globals - Shared globals; defaults to a fresh isolated instance.
+   * @param globals - Shared globals. Defaults to a fresh isolated instance.
    */
   constructor(globals: Globals = new Globals()) {
     this.vars = new VarPool();
@@ -398,7 +398,7 @@ export class EelContext {
       }
     }
 
-    // --- eager unary math ---
+    // --- eager unary maths ---
     const u = UNARY_FNS[name];
     if (u) {
       arity(1);
@@ -406,7 +406,7 @@ export class EelContext {
       return () => u(a());
     }
 
-    // --- eager binary math ---
+    // --- eager binary maths ---
     const b = BINARY_FNS[name];
     if (b) {
       arity(2);
@@ -438,7 +438,7 @@ function sign(x: number): number {
   return x > 0 ? 1 : x < 0 ? -1 : 0;
 }
 
-/** Eager single-argument math built-ins. */
+/** Eager single-argument maths built-ins. */
 const UNARY_FNS: Record<string, (x: number) => number> = {
   sin: Math.sin,
   cos: Math.cos,
@@ -456,13 +456,14 @@ const UNARY_FNS: Record<string, (x: number) => number> = {
   ceil: Math.ceil,
   sign,
   invsqrt: (x) => 1 / Math.sqrt(x),
-  // int() - integer part toward zero. (NS-EEL2 lacks `int`; MilkDrop docs call
-  // it "integer part". Verify direction against reference presets if needed.)
+  // int() - integer part towards zero. NS-EEL2 lacks `int`, and the MilkDrop
+  // docs call it "integer part". Verify the direction against reference presets
+  // if needed.
   int: Math.trunc,
   bnot: (x) => (truthy(x) ? 0 : 1),
 };
 
-/** Eager two-argument math built-ins. */
+/** Eager two-argument maths built-ins. */
 const BINARY_FNS: Record<string, (a: number, b: number) => number> = {
   atan2: Math.atan2,
   pow: Math.pow,

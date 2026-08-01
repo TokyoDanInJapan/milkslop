@@ -33,7 +33,7 @@ export interface ShaderFrameState {
   blur2: WebGLTexture;
   blur3: WebGLTexture;
   noise: NoiseTextures | null;
-  /** User (image) sampler names this shader declares, e.g. `sampler_pifano`. */
+  /** User (image) sampler names this shader declares, for example `sampler_pifano`. */
   userSamplers?: string[];
   /** Registered user textures keyed by {@link userSamplerKey}. */
   userTextures?: Map<string, WebGLTexture>;
@@ -102,7 +102,7 @@ export function bindShaderUniforms(
   gl.uniform4f(u("aspect"), s.aspectX, s.aspectY, 1 / s.aspectX, 1 / s.aspectY);
   gl.uniform4f(u("rand_frame"), ...s.randFrame);
   gl.uniform4f(u("rand_preset"), ...s.randPreset);
-  // hue_shader corner colours (comp pass only; warp leaves the array unused)
+  // hue_shader corner colours (comp pass only - the warp pass leaves it unused)
   const hueLoc = u("hue_shader_corners[0]");
   if (hueLoc) gl.uniform3fv(hueLoc, s.hueCorners);
 
@@ -167,7 +167,7 @@ export function bindShaderUniforms(
     gl.activeTexture(gl.TEXTURE0 + unit);
     gl.bindTexture(gl.TEXTURE_2D, texFor(name));
     // fc/fw/pc/pw share the main texture but carry their own filter/wrap
-    // state via sampler objects; everything else uses the texture's own params
+    // state via sampler objects. Everything else uses the texture's own params
     gl.bindSampler(unit, aliasSamplers.get(name) ?? null);
     gl.uniform1i(loc, unit);
     unit++;

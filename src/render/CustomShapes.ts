@@ -3,11 +3,11 @@
  * optional feedback-texture fill, and an optional outline border. Ported from
  * DrawCustomShapes (milkdropfs.cpp:2298). Textured shapes sample the previous
  * frame (the original's `m_lpVS[0]`) with UVs spun by `tex_ang` and scaled by
- * `tex_zoom`; the UVs are D3D-oriented so the fragment shader applies the
+ * `tex_zoom`. The UVs are D3D-oriented so the fragment shader applies the
  * usual feedback v-flip.
  */
 
-import { ColorBatch, FLOATS_PER_VERT } from "./ColorBatch.ts";
+import { ColourBatch, FLOATS_PER_VERT } from "./ColourBatch.ts";
 import { linkProgram } from "./gl.ts";
 import { THICK_PASSES, THICK_PASS_STEPS } from "./thickLines.ts";
 import type { Aspect } from "./warp.ts";
@@ -46,7 +46,7 @@ const TEX_FLOATS = constants.layout.texFloatsPerVert; // [x, y, u, v, r, g, b, a
 /** Renders a preset's custom shapes into the feedback buffer. */
 export class CustomShapes {
   private gl: WebGL2RenderingContext;
-  private batch: ColorBatch;
+  private batch: ColourBatch;
   private texProg: WebGLProgram;
   private texVao: WebGLVertexArrayObject;
   private texVbo: WebGLBuffer;
@@ -55,7 +55,7 @@ export class CustomShapes {
 
   constructor(gl: WebGL2RenderingContext) {
     this.gl = gl;
-    this.batch = new ColorBatch(gl, 4096);
+    this.batch = new ColourBatch(gl, 4096);
     this.texProg = linkProgram(gl, TEX_VS, TEX_FS);
     this.uTex = gl.getUniformLocation(this.texProg, "uTex");
     this.texData = new Float32Array(128 * TEX_FLOATS); // sides ≤ 100 + centre + close
@@ -104,11 +104,11 @@ export class CustomShapes {
    *
    * @param preset - Compiled preset supplying the per-frame shape code.
    * @param mainQ - The main per-frame q-variable values (q1..q32).
-   * @param inputs - Named runtime inputs (time, bass, etc.) for the EEL code.
+   * @param inputs - Named runtime inputs (time, bass, and so on) for the EEL code.
    * @param aspect - Aspect-ratio correction factors for the output.
    * @param texSizeX - Render target width in pixels.
    * @param texSizeY - Render target height in pixels.
-   * @param sourceTex - Previous-frame texture sampled by textured shapes; when
+   * @param sourceTex - Previous-frame texture sampled by textured shapes. When
    *   omitted, textured fills are skipped.
    */
   render(

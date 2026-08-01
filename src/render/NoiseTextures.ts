@@ -14,8 +14,8 @@
  *   sampler_noisevol_lq     32³    3D, zoom 1
  *   sampler_noisevol_hq     32³    3D, zoom 4
  *
- * The pure generators (`generateNoise2D` / `generateNoise3D`) are unit-tested;
- * the exported factory uploads them as RGBA8 textures with mipmaps.
+ * The pure generators (`generateNoise2D` / `generateNoise3D`) are unit-tested.
+ * The exported factory uploads them as RGBA8 textures with mipmaps.
  */
 
 /** The six noise textures bound to the MilkDrop noise samplers. */
@@ -30,7 +30,7 @@ export interface NoiseTextures {
 
 /**
  * Cubic interpolation through four samples, 1:1 with `fCubicInterpolate`
- * (plugin.cpp:2382). `t` runs 0→1 from `y1` toward `y2`.
+ * (plugin.cpp:2382). `t` runs 0→1 from `y1` towards `y2`.
  *
  * @returns The interpolated value (not clamped).
  */

@@ -29,7 +29,7 @@ export class Megabuf {
   /**
    * Read the cell at a (floored) index.
    *
-   * @param index - Address; fractional values are floored.
+   * @param index - Address. Fractional values are floored.
    * @returns The stored value, or 0 if out of range or never written.
    */
   get(index: number): number {
@@ -42,7 +42,7 @@ export class Megabuf {
   /**
    * Write a value at a (floored) index. Out-of-range writes are ignored.
    *
-   * @param index - Address; fractional values are floored.
+   * @param index - Address. Fractional values are floored.
    * @param value - Value to store.
    * @returns `value` (so the intrinsic can be used as an expression).
    */
@@ -96,7 +96,7 @@ export class Megabuf {
   }
 
   /**
-   * Release all storage (the `freembuf` intrinsic); every cell subsequently
+   * Release all storage (the `freembuf` intrinsic). Every cell subsequently
    * reads back as 0.
    */
   free(): void {

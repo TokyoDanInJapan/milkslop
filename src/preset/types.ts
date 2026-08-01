@@ -3,7 +3,7 @@
  *
  * @remarks
  * Scalar parameters are stored in {@link PresetState.vals}, keyed by the
- * per-frame variable name they seed (e.g. `"zoom"`, `"decay"`, `"wave_r"`) so
+ * per-frame variable name they seed (for example, `"zoom"`, `"decay"`, `"wave_r"`) so
  * the renderer can load them into the EEL variable bag each frame (cf.
  * `LoadPerFrameEvallibVars`). A handful of state-only scalars that are not
  * exposed to equations use descriptive keys.

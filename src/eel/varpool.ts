@@ -2,12 +2,13 @@
  * Per-context variable store: a dense, growable `Float64Array` indexed by name.
  *
  * @remarks
- * Variables persist across frames within one preset (e.g. `q1..q32` set in
- * `per_frame` and read in `per_pixel`; user vars carried frame-to-frame). The
- * host reads/writes named slots around each run (cf. `LoadPerFrameEvallibVars`).
+ * Variables persist across frames within one preset. For example, `q1..q32` is
+ * set in `per_frame` and read in `per_pixel`, and user vars carry from frame to
+ * frame. The host reads and writes named slots around each run (compare
+ * `LoadPerFrameEvallibVars`).
  */
 export class VarPool {
-  /** Backing storage; reallocated (and reassigned) when the pool grows. */
+  /** Backing storage. Reallocated (and reassigned) when the pool grows. */
   buf: Float64Array;
   private map = new Map<string, number>();
   private count = 0;

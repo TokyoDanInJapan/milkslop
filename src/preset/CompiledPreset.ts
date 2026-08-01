@@ -5,7 +5,7 @@
  * EelContext so variables flow between them (q1..q32, user vars). Each enabled
  * custom wave/shape gets its own context(s). Full frame orchestration - loading
  * var_pf_* inputs, the q/t handoff, running per_pixel per grid vertex - lives in
- * the renderer; this class is the compile-and-run substrate.
+ * the renderer. This class is the compile-and-run substrate.
  */
 
 import { EelContext, EelProgram, Globals } from "../eel/index.ts";
@@ -31,7 +31,7 @@ const T_NAMES: readonly string[] = Array.from(
  *
  * @remarks
  * `seedQ`/`seedT` run once per custom wave and once per *shape instance* every
- * frame; resolving 40 names each time (and formatting the name strings) was
+ * frame. Resolving 40 names each time (and formatting the name strings) was
  * pure overhead, since the indices never change for a given pool.
  */
 class QtSlots {
@@ -120,7 +120,7 @@ export class CompiledWave {
   private tAfterInit = new Float64Array(NUM_T_VARS);
   private slots: QtSlots;
   private ppSlots: QtSlots;
-  // per_point inputs (0-5) and outputs (2-7); see PP_POINT_VARS
+  // per_point inputs (0-5) and outputs (2-7). See PP_POINT_VARS
   private ppPointSlots: Int32Array;
   // reused per-point result: filled and consumed within one loop iteration
   private point: WavePointProps = { x: 0, y: 0, r: 0, g: 0, b: 0, a: 0 };
@@ -187,7 +187,7 @@ export class CompiledWave {
   }
 
   /**
-   * Run per_point for one sample; sample/value1/value2 in, position+colour out.
+   * Run per_point for one sample. Sample/value1/value2 in, position+colour out.
    *
    * @remarks
    * Runs up to 512 times per wave per frame, so it touches the variable pool by
@@ -387,7 +387,7 @@ export class CompiledPreset {
     this.ppCtx = new EelContext(globals);
 
     // Compile errors are surfaced per-block so one bad block doesn't sink the
-    // whole preset; the renderer can decide how to fall back.
+    // whole preset. The renderer can decide how to fall back.
     this.perFrameInit = compileOrNull(this.ctx, state.perFrameInitCode);
     this.perFrame = compileOrNull(this.ctx, state.perFrameCode);
     this.perPixel = compileOrNull(this.ppCtx, state.perPixelCode);
@@ -454,13 +454,13 @@ export class CompiledPreset {
   /**
    * Run per_frame for one frame. `inputs` are the read-only audio/time values
    * (bass, treb, time, frame, ...) the host supplies before each frame.
-   * Returns the EelContext so the caller can read back zoom/rot/q-vars/etc.
+   * Returns the EelContext so the caller can read back zoom, rot, the q-vars and so on.
    */
   runPerFrame(inputs: Record<string, number>): EelContext {
     if (!this.initialised) this.runInit(inputs);
     const v = this.ctx.vars;
     // Re-seed scalar baseline each frame (mirrors LoadPerFrameEvallibVars in C:
-    // zoom/rot/decay/wave_r/etc. are reset to .milk values before per_frame so
+    // zoom, rot, decay, wave_r and so on are reset to .milk values before per_frame so
     // per_frame always starts from the file baseline, not its own previous output).
     this.seedBaseline();
     // Re-seed q1..q32 from the post-init snapshot each frame (MilkDrop behaviour).

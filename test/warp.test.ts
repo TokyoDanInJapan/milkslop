@@ -65,7 +65,7 @@ describe("computeWarpUV", () => {
     expect(v).toBeCloseTo(0.0, 6);
   });
 
-  it("zoom > 1 pulls samples toward the centre (magnifies)", () => {
+  it("zoom > 1 pulls samples towards the centre (magnifies)", () => {
     const p = identityParams();
     p.zoom = 2;
     const { u } = computeWarpUV(1, 0, 1, p, noWarpFrame(), a);

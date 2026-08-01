@@ -5,13 +5,13 @@
  * {@link mapLimit} bounds the per-folder fetch concurrency.
  */
 
-import type { PresetEntry } from "./Visualizer.ts";
+import type { PresetEntry } from "./Visualiser.ts";
 
 /** Cap on how many presets a single folder URL will load (keeps it bounded). */
 export const MAX_URL_PRESETS = 500;
 
 /**
- * Map over `items` running at most `limit` async tasks at once; a task that
+ * Map over `items` running at most `limit` async tasks at once. A task that
  * rejects is dropped (its slot omitted) so one failure doesn't sink the batch.
  *
  * @param items - The inputs to process.
@@ -49,13 +49,13 @@ export type PresetUrlTarget =
   | { kind: "unsupported" };
 
 /**
- * Normalize `candidate` and confirm it is still anchored under `prefix` -
- * URL normalization collapses dot-segments (`..`, `%2e%2e`, …), so an input
+ * Normalise `candidate` and confirm it is still anchored under `prefix` -
+ * URL normalisation collapses dot-segments (`..`, `%2e%2e`, …), so an input
  * that tries to escape the intended path no longer matches the prefix.
  *
  * @param candidate - The URL assembled from user-supplied pieces.
  * @param prefix - The origin + path the result must remain under.
- * @returns The normalized URL, or `null` if it escaped the prefix.
+ * @returns The normalised URL, or `null` if it escaped the prefix.
  */
 function anchoredUrl(candidate: string, prefix: string): string | null {
   let url: URL;
@@ -72,7 +72,7 @@ function anchoredUrl(candidate: string, prefix: string): string | null {
  * `javascript:`, `data:`, relative paths, …).
  *
  * @param candidate - The URL the user pasted.
- * @returns The normalized URL, or `null` if unparsable or a non-web scheme.
+ * @returns The normalised URL, or `null` if unparsable or a non-web scheme.
  */
 function httpUrl(candidate: string): string | null {
   let url: URL;
@@ -91,7 +91,7 @@ function httpUrl(candidate: string): string | null {
  * folder (`/tree/<ref>/<path>`) or a bare repo (`/<owner>/<repo>`, optionally a
  * `.git` clone URL) becomes a contents-API listing URL; a GitHub single-file
  * (`/blob/...`) or any direct `.milk` link becomes a file URL (the blob form
- * rewritten to the raw host); anything else is `unsupported`.
+ * rewritten to the raw host). Anything else is `unsupported`.
  *
  * @param input - The URL the user pasted.
  * @returns The resolved target descriptor.
@@ -112,7 +112,7 @@ export function resolvePresetUrl(input: string): PresetUrlTarget {
     return apiUrl ? { kind: "folder", apiUrl } : { kind: "unsupported" };
   }
 
-  // GitHub single file (blob) → raw host; otherwise treat as a direct link
+  // GitHub single file (blob) → raw host. Otherwise treat as a direct link
   const blob = url.match(
     /^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/(.+\.milk)$/i,
   );
@@ -149,7 +149,7 @@ export function resolvePresetUrl(input: string): PresetUrlTarget {
 /**
  * Resolve a web URL to `.milk` preset entries, performing the network fetches.
  * A GitHub folder is listed via the contents API and every `.milk` in it is
- * fetched (capped at {@link MAX_URL_PRESETS}, {@link mapLimit} concurrency); a
+ * fetched (capped at {@link MAX_URL_PRESETS}, {@link mapLimit} concurrency). A
  * single file is fetched directly.
  *
  * @param input - A GitHub folder/blob URL or a direct `.milk` link.
@@ -185,7 +185,7 @@ export async function fetchMilkFromUrl(
         source: await dl.text(),
       };
     });
-    // mapLimit drops rejected slots; the difference is the failure count.
+    // mapLimit drops rejected slots. The difference is the failure count.
     return {
       entries,
       total: milk.length,

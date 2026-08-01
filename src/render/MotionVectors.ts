@@ -2,15 +2,15 @@
  * Motion vectors (`mv_*`), ported from CPlugin::DrawMotionVectors and
  * ReversePropagatePoint (milkdropfs.cpp). An mv_x × mv_y grid of short line
  * segments is drawn into the feedback *source* just before the warp samples
- * it; each line runs from a grid point to where that pixel "came from",
+ * it. Each line runs from a grid point to where that pixel "came from",
  * found by bilinearly interpolating the warp mesh's UV field - so the lines
  * trace the flow and get warped along with everything else.
  *
- * The math is pure and unit-tested; {@link MotionVectors} is the thin GL
- * wrapper that draws the lines via a {@link ColorBatch}.
+ * The maths is pure and unit-tested; {@link MotionVectors} is the thin GL
+ * wrapper that draws the lines via a {@link ColourBatch}.
  */
 
-import { ColorBatch, FLOATS_PER_VERT } from "./ColorBatch.ts";
+import { ColourBatch, FLOATS_PER_VERT } from "./ColourBatch.ts";
 import { constants } from "../config.ts";
 
 /** Per-frame motion-vector values (post-equation `mv_*` variables). */
@@ -163,13 +163,13 @@ export function motionVectorVerts(
 /** Draws the motion-vector line grid into the feedback source buffer. */
 export class MotionVectors {
   private gl: WebGL2RenderingContext;
-  private batch: ColorBatch;
+  private batch: ColourBatch;
   private scratch = new Float32Array(MAX_MV_VERTS * 2);
 
   /** Set up the GL batch used to draw the motion-vector field. */
   constructor(gl: WebGL2RenderingContext) {
     this.gl = gl;
-    this.batch = new ColorBatch(gl, MAX_MV_VERTS);
+    this.batch = new ColourBatch(gl, MAX_MV_VERTS);
   }
 
   /** Draw the grid (no-op when alpha is below 0.001, like the original). */

@@ -7,9 +7,9 @@
 import type { TranspileResult } from "./transpile.ts";
 
 // Samplers always available to a preset shader. fc/fw/pc/pw are filter/wrap
-// (fc/fw/pc/pw are filter/wrap variants of the main texture; they share the
-// main texture but get their own GL sampler objects - f=linear/p=nearest,
-// w=repeat/c=clamp - bound in bindUniforms.)
+// variants of the main texture. They share the main texture but get their own
+// GL sampler objects - f=linear/p=nearest, w=repeat/c=clamp - bound in
+// bindUniforms.
 /** Samplers always declared for a preset shader. */
 export const STD_SAMPLERS = [
   "sampler_main",
@@ -78,7 +78,7 @@ uniform vec4 aspect;    // (ax, ay, 1/ax, 1/ay)
 uniform vec4 rand_frame, rand_preset;
 uniform vec4 roam_cos, roam_sin, slow_roam_cos, slow_roam_sin;
 // hue_shader: four animated corner colours (MilkDrop 2 milkdropfs.cpp:4129-4131),
-// bilinearly interpolated across the screen in main(). Comp-pass only; the warp
+// bilinearly interpolated across the screen in main(). Comp-pass only. The warp
 // pass uses white (1,1,1).
 uniform vec3 hue_shader_corners[4];
 uniform float decay;
@@ -129,7 +129,7 @@ float lum(vec4 c){ return dot(c.rgb, vec3(0.32,0.49,0.29)); }
 
 // DX9-faithful sqrt/log/rsqrt: HLSL docs say these return NaN for negative
 // arguments, but DX9 shader-model-3 hardware takes the absolute value instead -
-// many MilkDrop presets rely on that (e.g. sqrt(x) of an x that goes negative
+// many MilkDrop presets rely on that (for example, sqrt(x) of an x that goes negative
 // across the screen). The same convention is documented in the MIT-licensed
 // hlslparser (GLSLGenerator.cpp), as a faithful model of the DX9 hardware.
 // Renamed (not overloaded onto the built-ins, which ANGLE rejects) and wrapped
@@ -191,7 +191,7 @@ vec3 tex2D(sampler2D s, vec4 uv){ return texture(s, uv.xy).rgb; }
 vec3 tex2D(sampler2D s, float u){ return texture(s, vec2(u, u)).rgb; }
 vec4 tex3D(sampler3D s, vec3 uvw){ return texture(s, uvw); }
 
-// Common HLSL math constants
+// Common HLSL maths constants
 const float M_PI       = 3.14159265358979323846;
 const float M_PI_2     = 1.57079632679489661923;
 const float M_PI_4     = 0.78539816339744830962;
@@ -241,7 +241,7 @@ export type ShaderKind = "warp" | "comp";
 
 /**
  * Assemble the full fragment shader. For a warp shader `uv` is the per-vertex
- * warped coordinate (interpolated from the mesh); for a comp shader it is the
+ * warped coordinate (interpolated from the mesh). For a comp shader it is the
  * screen coordinate.
  *
  * @param result - The transpiled shader body plus its declared samplers/uniforms.
@@ -253,7 +253,7 @@ export function buildFragmentShader(
   kind: ShaderKind,
 ): string {
   // hue_shader: bilinear blend of the four animated corner colours across the
-  // screen (comp pass only - see ApplyHueShaderColors); the warp pass gets white.
+  // screen (comp pass only - see ApplyHueShaderColors). The warp pass gets white.
   const hueExpr =
     kind === "comp"
       ? `hue_shader_corners[0]*uv_orig.x*uv_orig.y` +
@@ -282,11 +282,11 @@ ${indent(result.body)}
   // Sanitise the output to match MilkDrop 2's 8-bit (RGBA8) feedback,
   // which Milkslop emulates on its RGBA16F buffer (16F keeps the smoother decay
   // gradients but, unlike RGBA8, also faithfully *stores* NaN/Inf and any value
-  // outside [0,1]). Two consequences a preset's shader math can trigger:
-  //   • NaN (e.g. sqrt(negative), normalize(0)) - RGBA8 flushes it to 0 on write;
+  // outside [0,1]). Two consequences a preset's shader maths can trigger:
+  //   • NaN (for example, sqrt(negative), normalize(0)) - RGBA8 flushes it to 0 on write.
   //     16F keeps it, and bilinear feedback sampling then spreads it until the
   //     whole frame goes black. Scrub NaN → 0 to match.
-  //   • values > 1 - RGBA8 clamps every feedback write to [0,1]; 16F lets them
+  //   • values > 1 - RGBA8 clamps every feedback write to [0,1]. 16F lets them
   //     accumulate, which turns sharpening-style feedback (out += noise*detail)
   //     into runaway RGB static. Clamp to [0,1] to match.
   ret = mix(ret, vec3(0.0), notEqual(ret, ret)); // NaN → 0

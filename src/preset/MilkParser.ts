@@ -2,8 +2,8 @@
  * Parses MilkDrop .milk preset text into a PresetState.
  *
  * Format (see state.cpp Import/Export): an INI-like list of key=value lines.
- * Scalars are single keys; equation/shader blocks are split across numbered
- * keys (e.g. per_frame_1=, per_frame_2=, warp_1=, wave_0_per_point_1=). Reading
+ * Scalars are single keys. Equation/shader blocks are split across numbered
+ * keys (for example, per_frame_1=, per_frame_2=, warp_1=, wave_0_per_point_1=). Reading
  * a block stops at the first missing index. A leading backtick on a code line
  * is a literal-escape and is stripped.
  */

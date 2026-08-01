@@ -7,7 +7,7 @@ import { transpile } from "../src/shader/transpile.ts";
 
 // Characterization ("golden") tests: lock in the exact transpiler output for
 // every shader in the committed corpus so refactors of transpile.ts can be
-// verified to be behavior-preserving. Update with `vitest run -u` only when
+// verified to be behaviour-preserving. Update with `vitest run -u` only when
 // an output change is intended.
 const corpusDir = resolve(
   dirname(fileURLToPath(import.meta.url)),

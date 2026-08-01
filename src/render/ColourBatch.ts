@@ -24,11 +24,11 @@ in vec4 vColor;
 out vec4 fragColor;
 void main() { fragColor = vColor; }`;
 
-/** Floats per vertex in a {@link ColorBatch} buffer: `[x, y, r, g, b, a]`. */
+/** Floats per vertex in a {@link ColourBatch} buffer: `[x, y, r, g, b, a]`. */
 export const FLOATS_PER_VERT = constants.layout.floatsPerVert;
 
 /** Reusable drawer for coloured primitives (fans, line strips, points). */
-export class ColorBatch {
+export class ColourBatch {
   private gl: WebGL2RenderingContext;
   private prog: WebGLProgram;
   private vao: WebGLVertexArrayObject;

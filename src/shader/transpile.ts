@@ -4,8 +4,8 @@
  * @remarks
  * MilkDrop preset shaders are a constrained subset of HLSL wrapped in a
  * `shader_body \{ ... \}` block, optionally preceded by helper functions and
- * extra `sampler` declarations. A real HLSL compiler is overkill; a careful
- * token/regex translation handles the domain (mostly straight-line float math).
+ * extra `sampler` declarations. A real HLSL compiler is overkill. A careful
+ * token/regex translation handles the domain (mostly straight-line float maths).
  * Shaders that fall outside the subset fail to compile and the renderer falls
  * back to the no-shader path, so partial coverage degrades gracefully.
  */
@@ -62,8 +62,8 @@ export function transpile(src: string): TranspileResult {
     .replace(/;(?:\s*;)+/g, ";")
     .replace(/^\s*;\s*$/gm, "");
 
-  // GLSL ES requires global initializers to be constant expressions. Presets
-  // initialize globals from uniforms (`float3 sxy = float3(q4,q5,q6);`) -
+  // GLSL ES requires global initialisers to be constant expressions. Presets
+  // initialise globals from uniforms (`float3 sxy = float3(q4,q5,q6);`) -
   // split those: keep the declaration global, move the assignment into main().
   const globalInits: string[] = [];
   {
@@ -119,7 +119,7 @@ export function transpile(src: string): TranspileResult {
     preambleVec2Names,
     preambleFloatNames,
   );
-  // Run moved global initializers before any body code.
+  // Run moved global initialisers before any body code.
   if (globalInits.length > 0) body = globalInits.join("\n") + "\n" + body;
 
   return {
@@ -133,14 +133,14 @@ export function transpile(src: string): TranspileResult {
 
 /**
  * Collect variable names declared as `vecN name` in a translated GLSL chunk.
- * Handles initializers (`vec3 a = vec3(0.0);`) and multi-name declarations
+ * Handles initialisers (`vec3 a = vec3(0.0);`) and multi-name declarations
  * (`vec3 a, b, c;`).
  */
 function collectVecNames(src: string, vecType: string): Set<string> {
   const names = new Set<string>();
   // Strip all parenthesized content first (function parameter lists would
-  // otherwise leak `vec2 project(vec3 s, …)` as declarations of `s` etc.;
-  // initializer call arguments are never needed for name extraction).
+  // otherwise leak `vec2 project(vec3 s, …)` as declarations of `s` and so on.
+  // initialiser call arguments are never needed for name extraction).
   let stripped = src;
   for (let prev = ""; prev !== stripped;) {
     prev = stripped;
@@ -148,7 +148,7 @@ function collectVecNames(src: string, vecType: string): Set<string> {
   }
   const re = new RegExp(`\\b${vecType}\\s+([^;]+);`, "g");
   for (const m of stripped.matchAll(re)) {
-    // Split on TOP-LEVEL commas only (commas inside initializer call parens like
+    // Split on TOP-LEVEL commas only (commas inside initialiser call parens like
     // `vec3 a = tex2D(s, uv).xyz;` must not produce bogus names), then take the
     // identifier before any `=`.
     const decl = m[1]!;
@@ -165,7 +165,7 @@ function collectVecNames(src: string, vecType: string): Set<string> {
       }
     }
     for (const tok of parts) {
-      // A `{` means we crossed into a function body (e.g. `vec2 project { …`
+      // A `{` means we crossed into a function body (for example, `vec2 project { …`
       // after paren-stripping a definition) - not a variable declaration.
       if (tok.includes("{")) continue;
       const name = tok.split("=")[0]!.trim().split(/\s+/)[0]!;
@@ -221,7 +221,7 @@ function translateBody(
 ): string {
   let s = translate(src);
 
-  // Extend vec2 names with names declared in the body itself (e.g. `vec2 zoom = ...`).
+  // Extend vec2 names with names declared in the body itself (for example, `vec2 zoom = ...`).
   // This lets subsequent assignments like `zoom = scalar;` be scalar-broadcast too.
   for (const n of collectVecNames(s, "vec2")) preambleVec2Names.add(n);
   for (const n of collectVecNames(s, "vec3")) preambleVec3Names.add(n);
@@ -272,7 +272,7 @@ function translateBody(
       // First: replace unswizzled preamble/body vec3 names with .xy - they are
       // vec3 in GLSL but HLSL would implicitly truncate to float2 in this
       // context. Only at paren depth 0: inside call arguments the expected
-      // type belongs to the callee (e.g. project(sxy, …) wants the vec3).
+      // type belongs to the callee (for example, project(sxy, …) wants the vec3).
       let fixedRhs = rhs;
       if (preambleVec3Names.size > 0) {
         const pv3esc = [...preambleVec3Names].map((n) =>
@@ -352,7 +352,7 @@ function translateBody(
       "g",
     );
     s = s.replace(preambleFloatAssignRe, (m, name: string, rhs: string) => {
-      // 2-component swizzle (e.g. texsize.zw) → vec2 expression → need .x
+      // 2-component swizzle (for example, texsize.zw) → vec2 expression → need .x
       if (/\.[xyzwrgba]{2}(?!\.[xyzwrgba])/.test(rhs))
         return `${name} = (${rhs}).x;`;
       // Unswizzled vec3-returning call or vec3 variable → vec3 expression → need .x
@@ -424,7 +424,7 @@ function translateBody(
     s = parts.join("");
 
     // Apply the same preamble-vec3 → .xy fix inside the UV arg of GetPixel/GetBlur/GetMain.
-    // These take a single UV argument; a preamble vec3 used as (part of) that UV will fail
+    // These take a single UV argument. A preamble vec3 used as (part of) that UV will fail
     // in GLSL because vec2+vec3 arithmetic is not defined.
     if (uvVec3Re) {
       s = s.replace(
@@ -455,7 +455,7 @@ function translateBody(
   // Fix: ANY single-component LHS (vecN.single) = vec3_expr → add .x to RHS.
   // Covers both compound (+=/-=) and plain (=) assignment.
   // HLSL allows assigning vec3 to a float component (takes .x); GLSL does not.
-  // Strategy: first replace any multi-component swizzles in the RHS (.xyz/.rgb etc.)
+  // Strategy: first replace any multi-component swizzles in the RHS (.xyz, .rgb and so on)
   // with the single .x/.r equivalent - this often makes the whole RHS scalar,
   // avoiding the need to wrap the entire expression.
   s = s.replace(
@@ -607,15 +607,15 @@ function translateBody(
 /**
  * Apply the ordered HLSL→GLSL translation passes to a chunk of code.
  *
- * Each pass is a pure string→string rewrite; the order is load-bearing
- * (e.g. type substitution must precede the declaration-coercion fixes, and
+ * Each pass is a pure string→string rewrite. The order is load-bearing
+ * (for example, type substitution must precede the declaration-coercion fixes, and
  * literal floatification must precede scalar-swizzle stripping).
  */
 function translate(src: string): string {
   let s = src;
   s = rewriteTypesAndRenames(s);
   s = fixDeclarationCoercions(s);
-  s = rewriteBraceInitializers(s);
+  s = rewriteBraceInitialisers(s);
   s = renameIntrinsicFunctions(s);
   s = fixVectorComparisons(s);
   s = stripStorageQualifiers(s);
@@ -639,19 +639,19 @@ function rewriteTypesAndRenames(s: string): string {
 
   // HLSL `int` declarations → `float` declarations before floatify runs.
   // MilkDrop preset shaders use `int` only for loop counters and counters that
-  // are compared / divided with float variables; treating them as float avoids
+  // are compared / divided with float variables. Treating them as float avoids
   // GLSL integer/float arithmetic errors.
-  // Careful: don't match `int1`, `int2` etc. (those are vector types handled below)
+  // Careful: don't match `int1`, `int2` and so on (those are vector types handled below)
   s = s.replace(
     /\bint(?![1-9])(\s+\w[\w]*\s*(?:,\s*\w+\s*)*(?:=|;))/g,
     "float$1",
   );
   // HLSL `int(x)` casts in float arithmetic → trunc() (same truncation semantics,
-  // returns float so it composes with GLSL ES float math; array indices get
+  // returns float so it composes with GLSL ES float maths. Array indices get
   // re-wrapped with int() by the array-index fix later).
   s = s.replace(/\bint\s*\(/g, "trunc(");
 
-  // HLSL float1/double1 scalar synonyms → float; doubleN → vecN
+  // HLSL float1/double1 scalar synonyms → float. DoubleN → vecN
   s = s.replace(/\bfloat1\b/g, "float");
   s = s.replace(/\bdouble1\b/g, "float");
   s = s.replace(/\bdouble([234])\b/g, "vec$1");
@@ -673,7 +673,7 @@ function rewriteTypesAndRenames(s: string): string {
   s = s.replace(/\bint([234])\b/g, "vec$1");
   s = s.replace(/\bbool([234])\b/g, "bvec$1");
 
-  // Normalise tex2d/tex3d case (HLSL is case-insensitive; our helpers use uppercase D)
+  // Normalise tex2d/tex3d case (HLSL is case-insensitive. Our helpers use uppercase D)
   s = s.replace(/\btex2d\b/g, "tex2D");
   s = s.replace(/\btex3d\b/g, "tex3D");
 
@@ -715,7 +715,7 @@ function fixDeclarationCoercions(s: string): string {
     "vec2$1",
   );
   // (Rule 2 removed: narrowing vec3 GetBlur→vec2 caused false positives when
-  //  the blur result was used as a color vector, not a UV offset.)
+  //  the blur result was used as a colour vector, not a UV offset.)
   // 3. vec2 var = uvExpr * (…GetBlur…) → add .xy so vec3 result truncates to vec2
   s = s.replace(
     /\b(vec2\s+\w+\s*=\s*\w+)\s*\*\s*\(([^;]*GetBlur[^;]*)\)/g,
@@ -724,8 +724,8 @@ function fixDeclarationCoercions(s: string): string {
   // 4. uvVar += (…GetBlur…) → .xy so vec3 result truncates to vec2
   s = s.replace(/\b(uv\w*)\s*\+=\s*([^;]*GetBlur[^;]*);/g, "$1 += ($2).xy;");
 
-  // 5. vec2 var = vec3 expr (three-component swizzle on a 2-vec, e.g. uv_orig.xyy).
-  //    D3D9 truncates vec3→vec2; add .xy.
+  // 5. vec2 var = vec3 expr (three-component swizzle on a 2-vec, for example uv_orig.xyy).
+  //    D3D9 truncates vec3→vec2. Add .xy.
   s = s.replace(
     /\bvec2(\s+\w+\s*=\s*)([^;]+\.[xyzwrgba]{3}[^;]*);/g,
     "vec2$1($2).xy;",
@@ -742,14 +742,14 @@ function fixDeclarationCoercions(s: string): string {
       const t = rhs.trim();
       // If rhs ends with `.[xyzwrgba]` AND the character before '.' is ')' then
       // the whole expression ends with a direct scalar swizzle of a paren-group.
-      // e.g. (GetBlur1(...)).y - already scalar.
+      // for example, (GetBlur1(...)).y - already scalar.
       if (/\.[xyzwrgba]$/.test(t) && t[t.length - 3] === ")")
         return `float${decl}${rhs};`;
       // Outermost call is a scalar-returning function → scalar
       if (/^(?:lum|dot|length|distance)\s*\(/.test(t))
         return `float${decl}${rhs};`;
       // Strip one level of outer parens and check if content starts with (PAREN_GROUP).swizzle.
-      // e.g. ((GetBlur2(x)-GetBlur2(y)).x * scale.x) - the inner diff is vec3 but is
+      // for example, ((GetBlur2(x)-GetBlur2(y)).x * scale.x) - the inner diff is vec3 but is
       // immediately swizzled to scalar, so the whole expression is scalar.
       const tCore =
         t.startsWith("(") && t.endsWith(")") ? t.slice(1, -1).trimEnd() : t;
@@ -814,7 +814,7 @@ function fixDeclarationCoercions(s: string): string {
       // Provably scalar → broadcast
       if (innerIsScalar(t)) return `vec2${decl}vec2(${rhs});`;
       // Vector-valued with a top-level 3/4-component swizzle → vec3/vec4-shaped,
-      // truncate to vec2 (e.g. `vec2 tmp = (uv_orig.xyy*ret.x);`)
+      // truncate to vec2 (for example, `vec2 tmp = (uv_orig.xyy*ret.x);`)
       if (/\.[xyzwrgba]{3,4}(?![xyzwrgba])/.test(t))
         return `vec2${decl}(${rhs}).xy;`;
       return `vec2${decl}${rhs};`;
@@ -822,14 +822,14 @@ function fixDeclarationCoercions(s: string): string {
   );
 
   // 10. vec4 NAME = SCALAR_EXPR - HLSL broadcasts; GLSL rejects.
-  // Also: vec4 NAME = tex2D/GetBlur(...) - those return vec3; in HLSL tex2D returned float4
+  // Also: vec4 NAME = tex2D/GetBlur(...) - those return vec3. In HLSL tex2D returned float4
   // (RGBA), so wrap with vec4(result, 1.0) to match the original float4 semantics.
   s = s.replace(
     /\bvec4(\s+\w+\s*=\s*)([^;]+);/g,
     (_m: string, decl: string, rhs: string) => {
       if (/\bvec[234]\s*\(/.test(rhs)) return `vec4${decl}${rhs};`;
       if (/\.[xyzwrgba]{2,}\s*$/.test(rhs.trim())) return `vec4${decl}${rhs};`;
-      // tex2D/GetBlur/GetPixel return vec3 (not vec4); wrap so the vec4 variable is filled.
+      // tex2D/GetBlur/GetPixel return vec3 (not vec4). Wrap so the vec4 variable is filled.
       // tex3D/textureLod/texture already return vec4 - leave unchanged.
       if (/\b(?:tex3D|textureLod|texture)\s*\(/.test(rhs))
         return `vec4${decl}${rhs};`;
@@ -843,18 +843,18 @@ function fixDeclarationCoercions(s: string): string {
 }
 
 /**
- * Rewrite HLSL brace initializers for matrices and const arrays into GLSL
+ * Rewrite HLSL brace initialisers for matrices and const arrays into GLSL
  * constructor syntax (rules 11-12).
  */
-function rewriteBraceInitializers(s: string): string {
-  // 11. Matrix brace initializers: HLSL `mat2 rot = { a, b, c, d };`
+function rewriteBraceInitialisers(s: string): string {
+  // 11. Matrix brace initialisers: HLSL `mat2 rot = { a, b, c, d };`
   //     → GLSL `mat2 rot = mat2(a, b, c, d);`
   s = s.replace(
     /\b(mat[234](?:x[234])?)\s+(\w+)\s*=\s*\{([^}]+)\};/g,
     "$1 $2 = $1($3);",
   );
 
-  // 12. Array brace initializers: `const vecN name[K] = { ... };`
+  // 12. Array brace initialisers: `const vecN name[K] = { ... };`
   //     → GLSL `const vecN name[K] = vecN[K]( ... );`
   //     For vecN elements: group every N scalars into a vecN() constructor.
   s = s.replace(
@@ -877,7 +877,7 @@ function rewriteBraceInitializers(s: string): string {
         .map((e: string) => e.trim())
         .filter(Boolean);
       if (elems.length === k) {
-        // Already one complete vec per element (e.g. vec4(...) per slot)
+        // Already one complete vec per element (for example, vec4(...) per slot)
         return `const ${elemType} ${name}[${count}] = ${elemType}[${count}](${elems.join(", ")});`;
       }
       // Group n scalars per array element into vecN() constructors
@@ -906,7 +906,7 @@ function renameIntrinsicFunctions(s: string): string {
   // where second/third args may be scalar while first is a vector type.
   s = s.replace(/\blerp\s*\(/g, "_mix(");
   s = s.replace(/\bfrac\s*\(/g, "fract(");
-  // sqrt/rsqrt/log/log2 → abs-wrapped helpers (DX9-faithful; see environment.ts).
+  // sqrt/rsqrt/log/log2 → abs-wrapped helpers (DX9-faithful. See environment.ts).
   // log2 before log so `\blog\b` doesn't touch `log2(`. rsqrt before sqrt is not
   // required (`\bsqrt` has no word boundary inside `rsqrt`), but keep them grouped.
   s = s.replace(/\brsqrt\s*\(/g, "_rsqrt(");
@@ -978,7 +978,7 @@ function fixTexsizeTruncations(s: string): string {
   s = s.replace(/\.xyz(\s*[-+]\s*[\d.]+\s*\*\s*texsize\.(?:zw|xy))/g, ".xy$1");
 
   // GetBlurN/GetMain/GetPixel result * vec2 → add .xy (D3D9 implicit vec3→vec2 truncation)
-  // e.g. 1.0*GetBlur1(uv)*vec2(0.0,1.0) → 1.0*GetBlur1(uv).xy*vec2(0.0,1.0)
+  // for example, 1.0*GetBlur1(uv)*vec2(0.0,1.0) → 1.0*GetBlur1(uv).xy*vec2(0.0,1.0)
   s = s.replace(
     /\b(GetBlur[0-3]|GetMain|GetPixel)\s*\(([^)]*)\)(?!\s*\.)\s*\*\s*(vec2\s*\()/g,
     "$1($2).xy * $3",
@@ -992,9 +992,9 @@ function fixTexsizeTruncations(s: string): string {
  * (HLSL permits scalar swizzles; GLSL rejects them on non-vector types).
  */
 function stripLumScalarSwizzles(s: string): string {
-  // Strip scalar swizzle from known float-returning function calls: lum(...).x etc.
+  // Strip scalar swizzle from known float-returning function calls: lum(...).x and so on.
   // HLSL permits no-op scalar swizzles; GLSL rejects them on non-vector types.
-  // Handle 1-level nested parens in lum() argument (e.g. lum(GetPixel(uv)).x)
+  // Handle 1-level nested parens in lum() argument (for example, lum(GetPixel(uv)).x)
   const lumArgPat = "([^()]*(?:\\([^()]*\\)[^()]*)*)";
   const lumSwizzleRe = new RegExp(
     `\\blum\\s*\\(${lumArgPat}\\)\\s*\\.[xyzwrgba]\\b`,
@@ -1058,7 +1058,7 @@ function floatifyIntegers(s: string): string {
   // Conservative: a run of digits not adjacent to word chars or a dot, and not
   // an array index. Domain shaders are mostly straight-line float math.
   s = floatifyLiterals(s);
-  // Post-fix: preprocessor conditionals (#if/#elif) must use integer constants;
+  // Post-fix: preprocessor conditionals (#if/#elif) must use integer constants.
   // floatifyLiterals may not catch indented # lines, so strip trailing .0 here.
   s = s.replace(/^(\s*#\w+\s+)(\d+)\.0\b/gm, "$1$2");
 
@@ -1077,8 +1077,8 @@ function stripRedundantScalarSwizzles(s: string): string {
 
   // Strip outer scalar swizzle from parenthesized PRODUCT of two scalar sub-
   // expressions: ((inner_paren_group).[xyzw] * name.[xyzw]).[xyzw]
-  // Inner group allows 2 levels of nesting (for GetBlur2(uv + vec2(d,0.0)) etc.)
-  // e.g. ((GetBlur2(a)-GetBlur2(b)).x * scale.x).x → ((GetBlur2(a)-GetBlur2(b)).x * scale.x)
+  // Inner group allows 2 levels of nesting (for GetBlur2(uv + vec2(d,0.0)) and so on)
+  // for example, ((GetBlur2(a)-GetBlur2(b)).x * scale.x).x → ((GetBlur2(a)-GetBlur2(b)).x * scale.x)
   // Deliberately narrow: both operands of * must end with a single-char swizzle.
   s = s.replace(
     /\(\s*\([^()]*(?:\([^()]*(?:\([^()]*\)[^()]*)*\)[^()]*)*\)\s*\.[xyzwrgba]\s*\*\s*\w+\.[xyzwrgba]\s*\)\s*\.[xyzwrgba]\b/g,
@@ -1089,7 +1089,7 @@ function stripRedundantScalarSwizzles(s: string): string {
   // Uses a negative lookbehind to exclude function calls like tex2D(args).x -
   // the paren must NOT be preceded by an identifier character.
   // A vec3-returning call inside INNER is "scalar" iff immediately followed by
-  // .[single] (swizzled) or ) (wrapped in lum()/dot()/etc.).
+  // .[single] (swizzled) or ) (wrapped in lum(), dot() and so on).
   // If the entire INNER starts with lum/dot/length/distance, it's scalar.
   s = s.replace(
     /(?<![a-zA-Z0-9_])\(([^()]*(?:\([^()]*(?:\([^()]*(?:\([^()]*\)[^()]*)*\)[^()]*)*\)[^()]*)*)\)\s*\.[xyzwrgba]\b/g,
@@ -1103,7 +1103,7 @@ function stripRedundantScalarSwizzles(s: string): string {
 
   // Strip outer multi-char swizzle from parenthesized scalar:
   // (scalar_expr.[single]).[multi] → (scalar_expr.[single])
-  // e.g. (GetPixel(uv).x).xy → (GetPixel(uv).x)
+  // for example, (GetPixel(uv).x).xy → (GetPixel(uv).x)
   s = s.replace(
     /\(([^()]*\.[xyzwrgba])\)\s*\.[xyzwrgba]{2,}\b/g,
     (m, inner: string) => {
@@ -1128,7 +1128,7 @@ function stripRedundantScalarSwizzles(s: string): string {
 function wrapFloatArrayIndices(s: string): string {
   // GLSL array indices must be integer. Float variables used as indices (HLSL
   // for-loop counters declared as float) must be wrapped with int().
-  // Only wrap when the index contains a letter (i.e. it's a variable, not a literal).
+  // Only wrap when the index contains a letter (that is, it is a variable, not a literal).
   s = s.replace(/\[([^\]]*[a-zA-Z][^\]]*)\]/g, (m, idx: string) => {
     // Skip if already has a cast, or if it's a swizzle / sampler subscript.
     if (/^\s*int\s*\(/.test(idx) || /^\s*uint\s*\(/.test(idx)) return m;
@@ -1150,14 +1150,14 @@ function wrapFloatArrayIndices(s: string): string {
  *    and check that each one is immediately followed by either:
  *      – a single-char swizzle  →  the call result is taken scalar
  *      – a closing `)`          →  the call is an argument to an outer scalar fn
- *    If any call is "naked" (followed by `*`, `+`, `,`, etc.) the expression is
+ *    If any call is "naked" (followed by `*`, `+`, `,` and so on) the expression is
  *    a vector and we must not strip.
  */
 // Returns true when `pos` (the start of a vec3-returning call) sits inside a
 // context that makes it scalar.  Two cases:
 //   1. It is an argument to lum/dot/length/distance.
 //   2. Its immediately-containing paren group is followed by a single-char swizzle,
-//      e.g. (GetBlur1(uv) - GetBlur2(uv)).x  - the group as a whole is scalar.
+//      for example, (GetBlur1(uv) - GetBlur2(uv)).x  - the group as a whole is scalar.
 function isInsideScalarFunc(t: string, pos: number): boolean {
   // Walk UP through enclosing paren groups. At each level the vector-ness of
   // the item at `pos` is neutralized if:
@@ -1191,7 +1191,7 @@ function isInsideScalarFunc(t: string, pos: number): boolean {
       )
     )
       return true;
-    // Find the matching close of this group; check for a single-char swizzle.
+    // Find the matching close of this group. Check for a single-char swizzle.
     let j = open + 1;
     let d2 = 1;
     while (j < t.length && d2 > 0) {
@@ -1213,7 +1213,7 @@ function isInsideScalarFunc(t: string, pos: number): boolean {
 /**
  * True when the item at `pos` sits inside the argument list of an UNKNOWN
  * (user-defined) function call. Known type-preserving builtins (sin, fract, …)
- * and plain paren groups are transparent; an unrecognized callee means the
+ * and plain paren groups are transparent. An unrecognised callee means the
  * expected argument type belongs to that function - don't rewrite the item.
  */
 function isInsideUserCall(t: string, pos: number): boolean {
@@ -1265,7 +1265,7 @@ function innerIsScalar(inner: string, vec3Names?: Set<string>): boolean {
     while (i < t.length && t[i] === " ") i++;
     const ch = t[i] ?? "";
     // Single-component swizzle: the char after '.' must be a swizzle char, but
-    // the char AFTER that must NOT be (otherwise .xy/.xyz/etc. would match).
+    // the char AFTER that must NOT be (otherwise .xy, .xyz and so on would match).
     if (
       ch === "." &&
       /[xyzwrgba]/.test(t[i + 1] ?? "") &&
@@ -1274,7 +1274,7 @@ function innerIsScalar(inner: string, vec3Names?: Set<string>): boolean {
       continue;
     // A closing ')' after the call means it's the last arg of some outer call or group.
     // Use isInsideScalarFunc to check whether that outer context is scalar-returning
-    // (e.g. lum/dot/length, or a paren-group followed by a single-char swizzle).
+    // (for example, lum/dot/length, or a paren-group followed by a single-char swizzle).
     if (ch === ")") {
       if (isInsideScalarFunc(t, m.index)) continue;
       return false;
@@ -1341,7 +1341,7 @@ function stripScalarSwizzles(src: string): string {
   // Single-char swizzle: strip it (no-op on scalar, HLSL allows it, GLSL rejects).
   const reSingle = new RegExp(`\\b(${names.join("|")})\\.([xyzwrgba])\\b`, "g");
   let result = src.replace(reSingle, "$1");
-  // Multi-char all-same swizzle (HLSL scalar broadcast, e.g. float.xxx → vec3):
+  // Multi-char all-same swizzle (HLSL scalar broadcast, for example float.xxx → vec3):
   // Replace with vecN constructor so GLSL accepts it.
   const reMulti = new RegExp(
     `\\b(${names.join("|")})\\.([xyzwrgba])\\2\\2?\\2?\\b`,

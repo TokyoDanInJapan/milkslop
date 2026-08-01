@@ -1,8 +1,8 @@
 # Milkslop
 
-A standalone WebGL2 port of the **MilkDrop 2** music visualizer, written from scratch in TypeScript.
+A standalone WebGL2 port of the **MilkDrop 2** music visualiser, written from scratch in TypeScript.
 
-> ⚠️ **Photosensitivity warning:** Milkslop generates rapidly flashing, strobing, and high-contrast visuals that react to audio, especially on beats and hard cuts. These may trigger seizures in people with photosensitive epilepsy. If you have a history of seizures or are sensitive to flashing lights, use caution - or avoid use altogether.
+> ⚠️ **WARNING - photosensitivity.** If you have a history of seizures, or you are sensitive to flashing lights, do not use Milkslop. The visuals flash, strobe and change contrast rapidly in reaction to the audio, above all on beats and hard cuts. They can cause seizures in people with photosensitive epilepsy.
 
 ## Running
 
@@ -17,23 +17,30 @@ npm run smoke
 
 ## Usage
 
-The page renders the bundled default preset immediately; drag in (or pick) audio and the visuals react to it. The bundled playlist cycles through four presets - the no-shader `default`, the shader-driven `flow`, `froth` (a texture-based preset that warps a bundled foam image), and `rose` (a shaderless dot figure computed entirely in EEL via `loop()` and `gmegabuf`) - crossfading between them.
+The page renders the bundled default preset immediately. Drag in (or pick) audio, and the visuals react to it. The bundled playlist crossfades through four presets:
 
-- **Drag in** (one or many) `.milk` preset files to add them to the playlist, audio files to queue & visualize, or image files to bind as preset textures (a shader's `sampler_<name>` resolves to the image dropped as `<name>.<ext>`).
-- **Toolbar**: prev/next, preset list (☰), music queue (♫), freeze (⏸), hard cuts (⚡), fullscreen (⛶), help (?). A **sens** slider scales audio reactivity, an **fps** slider caps the frame rate (0–120 Hz, default 60, `0` = off), and a **blur** slider softens the output (0–40 px, `0` = off).
-- **Preset list** (☰) and **music queue** (♫) open panels to search/jump presets and add/play/remove tracks; queued tracks auto-advance and the queue loops.
-- **Load from URL**: the preset panel has a URL field (next to the file picker) that fetches `.milk` presets over the web - paste a direct/raw `.milk` link, a GitHub single-file link, or a GitHub folder URL (e.g. `https://github.com/projectM-visualizer/presets-milkdrop-original/tree/master/Milkdrop-Original`), which is listed and bulk-loaded. Presets only; textures they reference must still be supplied locally (drag them in).
+- `default` - no shaders.
+- `flow` - shader-driven.
+- `froth` - texture-based. It warps a bundled foam image.
+- `rose` - a shaderless dot figure, computed entirely in EEL through `loop()` and `gmegabuf`.
+
+What you can do:
+
+- **Drag in** one or many files. `.milk` files go to the preset playlist, audio files go to the music queue, and image files bind as preset textures. A shader's `sampler_<name>` resolves to the image you drop as `<name>.<ext>`.
+- **Toolbar**: prev/next, preset list (☰), music queue (♫), freeze (⏸), hard cuts (⚡), fullscreen (⛶), help (?). The **sens** slider scales audio reactivity. The **fps** slider caps the frame rate (0–120 Hz, default 60, `0` = off). The **blur** slider softens the output (0–40 px, `0` = off).
+- **Preset list** (☰) and **music queue** (♫) open panels to search and jump presets, and to add, play and remove tracks. Queued tracks advance automatically and the queue loops.
+- **Load from URL**: the preset panel has a URL field next to the file picker. It fetches `.milk` presets over the web. Paste a direct or raw `.milk` link, a GitHub single-file link, or a GitHub folder URL (for example, `https://github.com/projectM-visualizer/presets-milkdrop-original/tree/master/Milkdrop-Original`), which Milkslop lists and loads in bulk. The URL field takes presets only. Supply the textures those presets reference locally, by dragging them in.
 - **Keys**: `N`/`→` next preset · `←` previous · `Space` freeze · `F` fullscreen · `H` toggle hard cuts · `?` help.
 - **Query params**: `?fast` (cycle every 4 s), `?hardcuts` (start with hard cuts on).
 
 ## Presets
 
-Milkslop reads standard MilkDrop `.milk` preset files - drag them onto the page to add them to the playlist. Thousands are freely available; some popular collections:
+Milkslop reads standard MilkDrop `.milk` preset files. Drag them onto the page to add them to the playlist. Thousands are freely available. These are some popular collections:
 
 - [**Cream of the Crop**](https://github.com/projectM-visualizer/presets-cream-of-the-crop) - Jason Fletcher's (ISOSCELES) curated pack of the best released MilkDrop presets, hand-picked from tens of thousands. The default preset pack in most recent projectM releases, and the recommended starting point.
 - [**MilkDrop original**](https://github.com/projectM-visualizer/presets-milkdrop-original) - the preset pack shipped with the last official MilkDrop release (textures excluded).
 - [**projectM classic**](https://github.com/projectM-visualizer/presets-projectm-classic) - the classic projectM collection (~4,200 presets) published through version 3.1.12.
-- [**MilkDrop texture pack**](https://github.com/projectM-visualizer/presets-milkdrop-texture-pack) - base textures many presets reference; drop the images in alongside `.milk` files (see the image-binding note under [Usage](#usage)).
+- [**MilkDrop texture pack**](https://github.com/projectM-visualizer/presets-milkdrop-texture-pack) - base textures that many presets reference. Drop the images in alongside the `.milk` files (see the image-binding note under [Usage](#usage)).
 
 > Presets that depend on textures need those image files bound too - drop them in as `sampler_<name>` → `<name>.<ext>` (see [Usage](#usage)).
 
@@ -41,7 +48,7 @@ You can also **generate** presets: [MilkDropLM](https://huggingface.co/Inference
 
 ### Testing sample set
 
-A small, feature-diverse set of 13 presets useful for smoke-testing the renderer - greedily selected to cover the widest spread of preset features (custom shapes/waves, every wave mode, echo orientations, PS2/PS3 shaders, motion vectors, EEL edge cases, etc.) in as few presets as possible. Copy any of these raw links into the preset panel's URL field:
+A small, feature-diverse set of 13 presets, useful for smoke-testing the renderer. A greedy selection covers the widest spread of preset features in as few presets as possible: custom shapes and waves, every wave mode, echo orientations, PS2 and PS3 shaders, motion vectors, EEL edge cases and more. Copy any of these raw links into the preset panel's URL field:
 
 - [Phat+fiShbRaiN+Eo.S - Mandala Chasers remix](https://raw.githubusercontent.com/projectM-visualizer/presets-milkdrop-original/master/Milkdrop-Original/Phat%2BfiShbRaiN%2BEo.S_Mandala_Chasers_remix.milk)
 - [Flexi - Milkcore [Martin's ripple on water insertion]](https://raw.githubusercontent.com/projectM-visualizer/presets-milkdrop-original/master/Milkdrop-Original/Flexi%20-%20Milkcore%20%5BMartin%27s%20ripple%20on%20water%20insertion%5D.milk)
@@ -66,21 +73,21 @@ All global values live in [`config.yaml`](config.yaml), loaded at build time (vi
 - **`tunables`** - values safe to change: preset cycle/blend timing, hard-cut thresholds, warp mesh density, shuffle.
 - **`constants`** - faithful 1:1 transcriptions of MilkDrop internals plus a few structural invariants, each annotated with its source provenance. These match the original C++ and are not tuning knobs.
 
-Edit `config.yaml` and rebuild (the dev server hot-reloads); the named constants exported across `src/` all read from it.
+Edit `config.yaml` and rebuild. The dev server hot-reloads it. Every named constant exported across `src/` reads from this file.
 
 ## Architecture
 
-milkslop turns live audio and a `.milk` preset into frames. Two input paths feed
-a central **Visualizer**, which drives one or two **Renderer** instances and
+Milkslop turns live audio and a `.milk` preset into frames. Two input paths feed
+a central **Visualiser**, which drives one or two **Renderer** instances and
 crossfades their output to the screen:
 
-- **Audio** is captured by `AudioEngine` (a Web Audio FFT) and reduced to
-  normalized bass/mid/treb bands by `SoundAnalyzer`.
-- A **preset** is parsed (`MilkParser`) and compiled (`CompiledPreset`): its
-  equation blocks become EEL closures (`eel/`) and its HLSL warp/composite
-  shaders are transpiled to GLSL (`shader/`).
+- **Audio**: `AudioEngine` (a Web Audio FFT) captures the audio, and
+  `SoundAnalyser` reduces it to normalised bass/mid/treb bands.
+- **Preset**: `MilkParser` parses the preset and `CompiledPreset` compiles it.
+  The equation blocks become EEL closures (`eel/`), and `shader/` transpiles the
+  HLSL warp and composite shaders to GLSL.
 
-The **Visualizer** owns the playlist, timed cycling, and beat-driven hard cuts,
+The **Visualiser** owns the playlist, timed cycling, and beat-driven hard cuts,
 and keeps **two `Renderer` slots** so a preset transition can run both presets
 at once and crossfade them with `Present`. Each `Renderer` runs MilkDrop's
 feedback pipeline into a ping-pong pair of textures (`FrameBuffers` VS0/VS1):
@@ -91,7 +98,7 @@ engine constants throughout.
 ```mermaid
 flowchart TD
     AUDIO["audio file"] --> AE["AudioEngine<br/>(Web Audio FFT)"]
-    AE --> SA["SoundAnalyzer<br/>bass · mid · treb"]
+    AE --> SA["SoundAnalyser<br/>bass · mid · treb"]
 
     MILK[".milk preset"] --> MP["MilkParser"]
     MP --> CP["CompiledPreset"]
@@ -101,7 +108,7 @@ flowchart TD
     SA --> VIZ
     CP --> VIZ
     TR --> VIZ
-    VIZ["Visualizer<br/>playlist · cycling · hard cuts"]
+    VIZ["Visualiser<br/>playlist · cycling · hard cuts"]
 
     VIZ -->|current| RA
     VIZ -->|previous<br/>during a blend| RB
@@ -136,7 +143,7 @@ src/
               comparisons, megabuf/gmegabuf, q/reg vars, if/loop/while).
   preset/     MilkParser (.milk INI → PresetState) + CompiledPreset (compiles
               per_frame_init/per_frame/per_pixel + custom waves/shapes).
-  audio/      AudioEngine (Web Audio capture) + SoundAnalyzer (bass/mid/treb).
+  audio/      AudioEngine (Web Audio capture) + SoundAnalyser (bass/mid/treb).
   shader/     HLSL→GLSL transpiler (transpile.ts), the MilkDrop shader
               environment/prologue (environment.ts), shared uniform binding
               (bindUniforms.ts), and the composite ShaderPass.
@@ -144,11 +151,11 @@ src/
               (VS0/VS1 ping-pong feedback), WarpMesh (with optional warp
               shader), MotionVectors (reverse-propagated mv_* line grid),
               BlurPasses, Waveform, Borders (ob_*/ib_* into the feedback),
-              Composite, CustomShapes, CustomWaves, ColorBatch (shared
+              Composite, CustomShapes, CustomWaves, ColourBatch (shared
               coloured-primitive drawer), NoiseTextures, RenderTarget,
               Present (crossfade), gl.ts helpers, and Renderer (renders one
               preset's frame into an output texture).
-  app/        Visualizer (playlist, cycling, hard cuts, dual-preset blend),
+  app/        Visualiser (playlist, cycling, hard cuts, dual-preset blend),
               ui.ts (toolbar, title overlay, drag-and-drop), presetUrl.ts
               (load presets from a web URL / GitHub folder), main.ts entry
               point + render loop.
@@ -158,7 +165,7 @@ src/
   config.ts   Typed accessor for config.yaml (see Configuration above).
 ```
 
-Source is documented with [TSDoc](https://tsdoc.org/): every module has a `/** … */` header and every exported declaration a doc comment. `npm run lint` enforces both that those comments are well-formed (eslint-plugin-tsdoc) and that they are present (`scripts/check-tsdoc.mjs`).
+[TSDoc](https://tsdoc.org/) documents the source. Every module has a `/** … */` header, and every exported declaration has a doc comment. `npm run lint` checks that those comments are well-formed (eslint-plugin-tsdoc) and that they are present (`scripts/check-tsdoc.mjs`).
 
 ## Testing
 
@@ -178,31 +185,31 @@ the parts where correctness is subtle and regressions are easy to miss:
 | Noise gen        | `noise.test.ts`                    | cubic interpolation, per-tier zoom smoothing, 2D/3D generation                                |
 | Shader transpile | `transpile.test.ts`                | types, intrinsics, samplers, float-ification, prologue assembly                               |
 | Shader env       | `shaderenv.test.ts`                | user-sampler key resolution, builtin-sampler filtering                                        |
-| Audio            | `soundanalyzer.test.ts`            | band normalization, attenuation, no NaN                                                       |
+| Audio            | `soundanalyser.test.ts`            | band normalisation, attenuation, no NaN                                                       |
 | Hard cuts        | `hardcut.test.ts`                  | loudness trigger, ×2 raise, quarter-life decay, sub-1-fps skip                                |
 | Blend easing     | `blend.test.ts`                    | cosine interpolation curve                                                                    |
 | Preset URL load  | `preseturl.test.ts`                | GitHub folder/blob + raw URL classification, bounded-concurrency map, fetch + cap             |
 
-GPU-bound code (framebuffers, shader passes, the render loop, the UI) is exercised by the headless-Chrome scripts under `scripts/` - `npm run smoke` checks the pipeline produces a non-trivial frame with no console errors.
+The headless-Chrome scripts under `scripts/` exercise the GPU-bound code: framebuffers, shader passes, the render loop and the UI. `npm run smoke` checks that the pipeline produces a non-trivial frame with no console errors.
 
 Two feature-covering preset sets back the GPU/integration checks, both keyed off
 one shared feature detector (`scripts/preset-features.mjs`):
 
 - `test/presets-gen/` - **synthetic, generated from scratch** by
-  `npx tsx scripts/gen-test-presets.mjs`. ~19 hand-crafted presets that together
-  cover every feature in the canonical `FEATURE_UNIVERSE`; the generator
-  self-verifies that each one parses, compiles, and runs a frame, and that the
-  union is complete. **The unit suite uses only this set** - `npm test` is
-  self-contained and license-free, with no dependency on any user corpus.
+  `npx tsx scripts/gen-test-presets.mjs`. About 19 hand-crafted presets together
+  cover every feature in the canonical `FEATURE_UNIVERSE`. The generator checks
+  that each one parses, compiles and runs a frame, and that the union is
+  complete. **The unit suite uses only this set**, so `npm test` is
+  self-contained and licence-free, with no dependency on any user corpus.
 - `test/presets-mini/` - a minimal subset of a user preset corpus, chosen by
-  greedy set-cover (`npx tsx scripts/make-mini-corpus.mjs`). Not checked in;
-  generated on demand for spot-checking against real-world presets via the
-  headless scripts.
+  greedy set-cover (`npx tsx scripts/make-mini-corpus.mjs`). This set is not
+  checked in. Generate it on demand to spot-check against real-world presets
+  with the headless scripts.
 
 See each directory's `MANIFEST.md` for the preset→feature mapping. Shader-check
 any preset directory with `node scripts/check-shaders.mjs [dir]`.
 
-## License
+## Licence
 
 Milkslop is licensed under the [BSD 3-Clause License](LICENSE).
 
@@ -210,4 +217,4 @@ It is a derivative work of **MilkDrop 2**, which Nullsoft released under the sam
 BSD 3-Clause License (version 2.25c, 2013) - algorithms, constants, and shader
 logic are transcribed from that source. The upstream copyright notice
 (`Copyright 2005-2013 Nullsoft, Inc.`, MilkDrop by Ryan Geiss) is retained in the
-[NOTICE](NOTICE) file, as the license requires.
+[NOTICE](NOTICE) file, as the licence requires.

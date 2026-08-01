@@ -2,8 +2,8 @@
  * Web Audio input → time-domain waveform + frequency spectrum.
  *
  * This is the browser-side capture layer. The MilkDrop-specific band analysis
- * (bass/mid/treb at four timescales, normalized so the long-term average ~= 1)
- * lives in SoundAnalyzer (port of AnalyzeNewSound) and consumes the arrays here.
+ * (bass/mid/treb at four timescales, normalised so the long-term average ~= 1)
+ * lives in SoundAnalyser (port of AnalyzeNewSound) and consumes the arrays here.
  */
 
 import { constants } from "../config.ts";
@@ -124,7 +124,7 @@ export class AudioEngine {
 
 /** Decimate a byte time-domain buffer into `dst`, recentred to roughly [-1, 1]. */
 function copyWave(src: Uint8Array, dst: Float32Array): void {
-  // src is 0..255 centered at 128; sample/decimate down to dst.length.
+  // src is 0..255 centred at 128. Sample/decimate down to dst.length.
   const n = dst.length;
   const step = src.length / n;
   for (let i = 0; i < n; i++) {

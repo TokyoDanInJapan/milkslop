@@ -4,7 +4,7 @@
  * backward smoothing pass and the SmoothWave point-doubling.
  */
 
-import { ColorBatch, FLOATS_PER_VERT } from "./ColorBatch.ts";
+import { ColourBatch, FLOATS_PER_VERT } from "./ColourBatch.ts";
 import { applyThickPass, THICK_PASSES } from "./thickLines.ts";
 import type { Aspect } from "./warp.ts";
 import type {
@@ -25,14 +25,14 @@ export interface ChannelAudio {
 
 /** Renders a preset's custom (per-point) waves into the feedback buffer. */
 export class CustomWaves {
-  private batch: ColorBatch;
+  private batch: ColourBatch;
   private tmp0 = new Float32Array(512);
   private tmp1 = new Float32Array(512);
   // raw per-point verts before optional SmoothWave: [x,y,r,g,b,a]
   private raw = new Float32Array(512 * FLOATS_PER_VERT);
 
   constructor(gl: WebGL2RenderingContext) {
-    this.batch = new ColorBatch(gl, 4096);
+    this.batch = new ColourBatch(gl, 4096);
   }
 
   /**
@@ -40,7 +40,7 @@ export class CustomWaves {
    *
    * @param preset - Compiled preset supplying the per-frame/per-point code.
    * @param mainQ - The main per-frame q-variable values (q1..q32).
-   * @param inputs - Named runtime inputs (time, bass, etc.) for the EEL code.
+   * @param inputs - Named runtime inputs (time, bass, and so on) for the EEL code.
    * @param audio - Per-channel waveform and spectrum sample data.
    * @param waveScale - Global waveform amplitude scale (the preset's `wave_scale`).
    * @param aspect - Aspect-ratio correction factors for the output.

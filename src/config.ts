@@ -6,7 +6,7 @@
  * evaluation and usable from pure functions and unit tests alike.
  *
  * Modules across `src/` re-export their named constants from here rather than
- * hardcoding them; edit `config.yaml`, not the call sites.
+ * hardcoding them. Edit `config.yaml`, not the call sites.
  */
 
 import raw from "../config.yaml";

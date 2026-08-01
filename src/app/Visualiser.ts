@@ -1,5 +1,5 @@
 /**
- * Top-level visualizer: manages a preset playlist, timed auto-cycling, optional
+ * Top-level visualiser: manages a preset playlist, timed auto-cycling, optional
  * beat-driven hard cuts, and crossfade blending between two presets.
  *
  * Each preset renders in its own Renderer slot (its own feedback buffer), so a
@@ -15,7 +15,7 @@ import {
 import { Present } from "../render/Present.ts";
 import { RenderTarget } from "../render/RenderTarget.ts";
 import { parseMilk, CompiledPreset } from "../preset/index.ts";
-import { SoundAnalyzer } from "../audio/SoundAnalyzer.ts";
+import { SoundAnalyser } from "../audio/SoundAnalyser.ts";
 import { tunables, constants } from "../config.ts";
 
 /** A named preset source in the playlist. */
@@ -27,8 +27,8 @@ export interface PresetEntry {
 /**
  * One frame of the hard-cut loudness test (milkdropfs.cpp:907), as a pure
  * function. The threshold jumps ×2 on a trigger (a self-limiting refractory)
- * and otherwise decays toward `base` with the original's per-frame multiplier
- * `exp(-ln(4) / (halflife·fps))` - i.e. the excess falls to a quarter over
+ * and otherwise decays towards `base` with the original's per-frame multiplier
+ * `exp(-ln(4) / (halflife·fps))` - that is, the excess falls to a quarter over
  * `halflife` seconds. Below 1 fps the test is skipped.
  *
  * @param thresh - Current threshold.
@@ -52,7 +52,7 @@ export function stepHardCut(
 }
 
 /** Options controlling auto-cycling, blending, and hard cuts. */
-export interface VisualizerOptions {
+export interface VisualiserOptions {
   /** seconds a preset shows before auto-cycling (excludes blend time) */
   timeBetweenPresets?: number;
   /** crossfade duration in seconds */
@@ -66,15 +66,15 @@ export interface VisualizerOptions {
   /** hard-cut threshold decay time constant in seconds (original default 60) */
   hardCutHalflife?: number;
   /**
-   * Callback for shader-compile failures (see {@link Visualizer.onShaderError}).
+   * Callback for shader-compile failures (see {@link Visualiser.onShaderError}).
    * Passing it here (rather than assigning the property afterwards) lets the
    * constructor report failures in the initial preset too.
    */
   onShaderError?: (name: string, errors: readonly ShaderCompileError[]) => void;
 }
 
-/** Top-level visualizer: playlist, cycling, hard cuts, and crossfade blending. */
-export class Visualizer {
+/** Top-level visualiser: playlist, cycling, hard cuts, and crossfade blending. */
+export class Visualiser {
   private gl: WebGL2RenderingContext;
   private slotA: Renderer;
   private slotB: Renderer;
@@ -107,7 +107,7 @@ export class Visualizer {
   // (pop-free) rather than from a live slot. Two targets are ping-ponged so an
   // interrupt of an already-capture-based blend can read the current source
   // while writing the next snapshot. `fromCapture` selects that source while
-  // set; `captureSrc` is the target currently feeding the blend.
+  // set. `captureSrc` is the target currently feeding the blend.
   private captureA: RenderTarget | null = null;
   private captureB: RenderTarget | null = null;
   private captureSrc: RenderTarget | null = null;
@@ -117,8 +117,8 @@ export class Visualizer {
   private h: number;
 
   // hard-cut detection (faithful port of RenderFrame's loudness logic):
-  // its own analyzer for imm_rel bands + a self-raising/decaying threshold
-  private hardCutAnalyzer = new SoundAnalyzer();
+  // its own `SoundAnalyser` for imm_rel bands + a self-raising/decaying threshold
+  private hardCutAnalyser = new SoundAnalyser();
   private hardCutLoudness: number;
   private hardCutHalflife: number;
   private hardCutThresh: number;
@@ -140,7 +140,7 @@ export class Visualizer {
     w: number,
     h: number,
     playlist: PresetEntry[],
-    opts: VisualizerOptions = {},
+    opts: VisualiserOptions = {},
   ) {
     this.w = w;
     this.h = h;
@@ -200,7 +200,7 @@ export class Visualizer {
 
   /**
    * Register dropped images as user textures. A preset shader referencing
-   * `sampler_<name>` (e.g. `sampler_pifano`) will sample the image dropped as
+   * `sampler_<name>` (for example, `sampler_pifano`) will sample the image dropped as
    * `<name>.<ext>`. Re-registering a name replaces (and frees) the prior one.
    */
   registerImages(images: { name: string; bitmap: ImageBitmap }[]): void {
@@ -256,9 +256,9 @@ export class Visualizer {
   /** Blend to a specific playlist index. */
   jumpTo(index: number, blendDuration = this.blendDuration): void {
     if (index < 0 || index >= this.playlist.length) return;
-    // Skip only when a blend toward this exact preset is already running, so
+    // Skip only when a blend towards this exact preset is already running, so
     // re-clicking the incoming one doesn't restart it. Selecting the settled
-    // current preset re-triggers it; any other preset transitions - so an
+    // current preset re-triggers it. Any other preset transitions - so an
     // explicit click always does something.
     if (this.blending && index === this.index) return;
     // Rapid back-and-forth: re-selecting the preset we're currently fading FROM
@@ -356,7 +356,7 @@ export class Visualizer {
       this.fromCapture = false;
     } else {
       // On interrupt the "from" image is the frozen capture, so we drop the
-      // previous slot; otherwise it's the (live) outgoing preset as usual.
+      // previous slot. Otherwise it's the (live) outgoing preset as usual.
       this.previous = interrupting ? null : this.current;
       this.current = incoming;
       this.fromCapture = interrupting;
@@ -399,7 +399,7 @@ export class Visualizer {
       }
     }
 
-    // render the active preset(s); on a capture-blend only `current` is live
+    // render the active preset(s). On a capture-blend only `current` is live
     this.current.frame(audio, dt, fps);
     if (this.blending && this.previous) this.previous.frame(audio, dt, fps);
 
@@ -423,12 +423,12 @@ export class Visualizer {
    * Faithful port of the hard-cut loudness test in RenderFrame
    * (milkdropfs.cpp:907). The sum of the immediate-relative bass/mid/treb bands
    * (each ≈ 1) is compared against a threshold that jumps ×2 on every trigger
-   * (a self-limiting refractory) and otherwise decays back toward
+   * (a self-limiting refractory) and otherwise decays back towards
    * `hardCutLoudness` with the original's per-frame multiplier. Updates the
    * threshold every frame and returns whether a cut should fire this frame.
    */
   private detectHardCut(audio: AudioFrame, dt: number): boolean {
-    const b = this.hardCutAnalyzer.update(audio.spectrum, dt);
+    const b = this.hardCutAnalyser.update(audio.spectrum, dt);
     const r = stepHardCut(
       this.hardCutThresh,
       b.bass + b.mid + b.treb,

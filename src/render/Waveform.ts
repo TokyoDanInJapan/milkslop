@@ -2,13 +2,13 @@
  * The basic waveform overlay - a faithful port of CPlugin::DrawWave
  * (milkdropfs.cpp:2765) with all 8 wave modes:
  *
- *   0 circular wave · 1 x-y spiral osc · 2 centered spiro · 3 centered spiro
+ *   0 circular wave · 1 x-y spiral osc · 2 centred spiro · 3 centred spiro
  *   (volume alpha) · 4 horizontal script · 5 explosive complex-plane hash ·
  *   6 angle-adjustable line · 7 dual angle-adjustable lines
  *
  * (The original's case 8 - spectrum line - is unreachable: `wave_mode % 8`
  * can never produce 8.) Vertex building and the SmoothWave tessellation are
- * pure and unit-tested; the {@link Waveform} class draws the result as line
+ * pure and unit-tested. The {@link Waveform} class draws the result as line
  * strips or points with the original's 4-pass thick-line fattening.
  */
 
@@ -172,7 +172,7 @@ export function buildWave(
       break;
     }
     case 2: {
-      // centered spiro (constant alpha) - nebula-like
+      // centred spiro (constant alpha) - nebula-like
       alpha *= texsizeAlphaMult(texSizeX);
       modAlpha();
       for (let i = 0; i < nVerts; i++)
@@ -180,7 +180,7 @@ export function buildWave(
       break;
     }
     case 3: {
-      // centered spiro, alpha tied to volume
+      // centred spiro, alpha tied to volume
       alpha = texsizeAlphaBase(texSizeX);
       alpha *= 1.3;
       alpha *= Math.pow(p.treb, 2);
@@ -358,7 +358,7 @@ export interface WaveDrawParams extends WaveBuildParams {
   r: number;
   g: number;
   b: number;
-  brighten: boolean; // wave_brighten (maximize color)
+  brighten: boolean; // wave_brighten (maximise colour)
   additive: boolean;
   dots: boolean;
   thick: boolean;
@@ -413,7 +413,7 @@ export class Waveform {
     const built = buildWave(p, fL, fR, aspect, texW, this.verts);
     if (built.alpha < 0.004 || built.nVerts < 2) return;
 
-    // maximize color (wave_brighten)
+    // maximise colour (wave_brighten)
     let { r, g, b } = p;
     r = Math.min(1, Math.max(0, r));
     g = Math.min(1, Math.max(0, g));

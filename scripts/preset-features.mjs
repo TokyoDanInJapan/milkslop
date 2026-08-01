@@ -158,7 +158,7 @@ export function detectFeatures(p, raw) {
 
 /**
  * Every feature the synthetic generator targets. Wave modes 0–8 and echo
- * orientations 0–3 are enumerated explicitly; everything else is one tag.
+ * orientations 0–3 are enumerated explicitly. Everything else is one tag.
  */
 export const FEATURE_UNIVERSE = [
   // pipeline
